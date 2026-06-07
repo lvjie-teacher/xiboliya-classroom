@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+uploads/
+results.json
+.git/
+.gitignore
+.workbuddy/
+*.bat
+*.txt
+!requirements.txt
+tunnel_output.txt
+classroom_repo/

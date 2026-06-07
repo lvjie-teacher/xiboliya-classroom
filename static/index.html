@@ -257,6 +257,11 @@
         .il-btn-confirm { background: linear-gradient(135deg, #1a237e, #283593); color: white; }
         .il-btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
         .il-count { font-size: 13px; color: #1a237e; font-weight: 600; }
+        /* 只读模式：不显示选中效果 */
+        .image-library-overlay.readonly .il-item { cursor: default; }
+        .image-library-overlay.readonly .il-item:hover { border-color: #e0e0e0; transform: none; box-shadow: none; }
+        .image-library-overlay.readonly .il-item.selected { border-color: #e0e0e0; box-shadow: none; }
+        .image-library-overlay.readonly .il-item .il-check { display: none !important; }
 
         @media (min-width: 768px) { .main-content { max-width: 720px; margin: 0 auto; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -313,7 +318,7 @@
                 <span style="color:rgba(255,255,255,0.3);margin:0 4px;">|</span>
                 <button id="presDrawToggle" onclick="togglePresDraw()">✏️ 画笔</button>
                 <span style="color:rgba(255,255,255,0.3);margin:0 4px;">|</span>
-                <button onclick="presAddImage()">➕ 添加图片</button>
+                <button onclick="presViewImages()">📷 查看图片库</button>
             </div>
             <div class="pres-toolbar-right">
                 <button onclick="presZoomIn()">➕</button>
@@ -372,9 +377,9 @@
                 <h3>📚 老师图片库</h3>
                 <button class="il-close" onclick="closeImageLibrary()">✕</button>
             </div>
-            <div style="padding:4px 20px;font-size:13px;color:#888;">点击图片选中，可多选 <span class="il-count" id="ilCount">已选 0 张</span></div>
+            <div id="ilInstruction" style="padding:4px 20px;font-size:13px;color:#888;">点击图片选中，可多选 <span class="il-count" id="ilCount">已选 0 张</span></div>
             <div class="il-grid" id="ilGrid"></div>
-            <div class="il-footer">
+            <div class="il-footer" id="ilFooter">
                 <button class="il-btn-cancel" onclick="closeImageLibrary()">取消</button>
                 <button class="il-btn-confirm" id="ilConfirmBtn" disabled onclick="confirmImageLibrary()">✓ 添加到图册</button>
             </div>
@@ -466,14 +471,9 @@ window.addEventListener('DOMContentLoaded',()=>{
 window.addEventListener('beforeunload',()=>{if(currentGroup)saveDraft();});
 // 切换标签页时自动保存
 window.addEventListener('visibilitychange',()=>{if(document.hidden&&currentGroup)saveDraft();});
-async function detectServer(){
-    // 只要不是本地文件打开，就一定连上服务器（公网模式）
+function detectServer(){
+    // 只要不是本地文件打开，就判定为公网模式（不再 fetch 验证，避免 Render 冷启动超时误判）
     serverMode = window.location.protocol !== 'file:' && window.location.hostname !== '';
-    try{
-        const r=await fetch('/api/config?t='+Date.now(),{signal:AbortSignal.timeout(3000)});
-        // 服务器有响应就确认连上
-        if(r.ok){ const c=await r.json();serverMode=c.server_mode!==false; }
-    }catch(e){ /* 网络不通时保持判定 */ }
     if(currentGroup)updateServerStatus();
 }
 
@@ -584,7 +584,6 @@ async function handleFileUpload(e){
     saveDraft();
     showNotification(`✅ 已添加 ${n} 张图片到图册！`);
     e.target.value='';
-    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{window._presWasAll?presentAll():presentGroup();},500);}
 }
 
 function fileToBase64(f){return new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f);});}
@@ -616,8 +615,22 @@ function searchImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();lo
 // ============ 图片库 ============
 let libraryImages=[], selectedLibraryIdx=[];
 
-async function openImageLibrary(){
+async function openImageLibrary(readOnly){
+    // 记录是否只读模式（教师从展示模式查看图片库）
+    window._ilReadOnly = !!readOnly;
     document.getElementById('imageLibraryOverlay').classList.add('active');
+    // 只读模式：隐藏选择提示和底部按钮，图片不可选
+    const instr = document.getElementById('ilInstruction');
+    const footer = document.getElementById('ilFooter');
+    if(window._ilReadOnly){
+        if(instr){ instr.style.display = 'none'; }
+        if(footer){ footer.style.display = 'none'; }
+        document.getElementById('imageLibraryOverlay').classList.add('readonly');
+    } else {
+        if(instr){ instr.style.display = ''; }
+        if(footer){ footer.style.display = ''; }
+        document.getElementById('imageLibraryOverlay').classList.remove('readonly');
+    }
     document.getElementById('ilGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">⏳ 加载中...</div>';
     selectedLibraryIdx=[];
     updateIlCount();
@@ -630,7 +643,15 @@ async function openImageLibrary(){
         document.getElementById('ilGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#c62828;">❌ 加载失败，请检查网络</div>';
     }
 }
-function closeImageLibrary(){document.getElementById('imageLibraryOverlay').classList.remove('active');}
+function closeImageLibrary(){
+    document.getElementById('imageLibraryOverlay').classList.remove('active');
+    document.getElementById('imageLibraryOverlay').classList.remove('readonly');
+    // 只读模式：关闭后展示模式继续（展示界面在底层正常运行）
+    if(window._ilReadOnly){
+        window._ilReadOnly = false;
+        return;
+    }
+}
 function renderImageLibrary(){
     const grid=document.getElementById('ilGrid');
     if(!libraryImages.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">📭 图片库为空</div>';return;}
@@ -644,6 +665,7 @@ function renderImageLibrary(){
     }).join('');
 }
 function toggleLibraryImage(idx){
+    if(window._ilReadOnly) return; // 只读模式不允许选中
     const pos=selectedLibraryIdx.indexOf(idx);
     if(pos>=0)selectedLibraryIdx.splice(pos,1);
     else selectedLibraryIdx.push(idx);
@@ -681,7 +703,6 @@ async function confirmImageLibrary(){
     saveDraft();
     closeImageLibrary();
     showNotification(`✅ 已从图片库添加 ${added} 张图片！`);
-    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{window._presWasAll?presentAll():presentGroup();},500);}
 }
 
 // ============ 清空数据 ============
@@ -1048,7 +1069,11 @@ function presGroupPrev(){if(presGroupIdx>0){presGroupIdx--;presImgIdx=0;presZoom
 function presGroupNext(){if(presGroupIdx<presGroups.length-1){presGroupIdx++;presImgIdx=0;presZoom=1;renderPresSlide();}}
 function presJumpToGroup(idx){idx=parseInt(idx);if(idx>=0&&idx<presGroups.length){presGroupIdx=idx;presImgIdx=0;presZoom=1;renderPresSlide();}}
 function closePresentation(){document.getElementById('presOverlay').classList.remove('active');presDrawing=false;try{document.exitFullscreen?.();}catch(e){}}
-function presAddImage(){window._presWasAll=presGroups&&presGroups.length>1;closePresentation();window._presAddImageMode=true;setTimeout(()=>{openImageLibrary();},300);}
+function presViewImages(){
+    // ★ 只读查看图片库：不关闭展示模式，图片库弹窗覆盖在上方
+    // 关闭图片库后展示继续，不影响展示顺序和内容
+    openImageLibrary(true);
+}
 
 // ============ 草稿 ============
 function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
