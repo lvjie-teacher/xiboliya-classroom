@@ -9,21 +9,38 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; background: #f0f2f5; color: #333; line-height: 1.6; }
         .app-container { max-width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
 
-        .group-select-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #1a237e, #283593); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        /* ========== 小组选择 - 全新设计 ========== */
+        .group-select-overlay { position: fixed; inset: 0; background: linear-gradient(160deg, #0d1b3e 0%, #1a237e 30%, #283593 60%, #1a237e 100%); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .group-select-overlay::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 60%); pointer-events: none; }
         .group-select-overlay.hidden { display: none; }
-        .group-select-box { background: white; border-radius: 20px; padding: 32px 24px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .group-select-box h2 { font-size: 22px; color: #1a237e; margin-bottom: 4px; }
-        .group-select-box p { font-size: 14px; color: #888; margin-bottom: 24px; }
-        .group-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .group-select-btn { padding: 20px 12px; border: 2px solid #e0e0e0; border-radius: 14px; background: white; cursor: pointer; transition: all 0.2s; text-align: center; }
-        .group-select-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .group-select-btn .gs-icon { font-size: 36px; display: block; margin-bottom: 6px; }
-        .group-select-btn .gs-name { font-size: 16px; font-weight: 600; color: #333; }
-        .group-number-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; justify-content: center; }
-        .group-number-row label { font-size: 14px; color: #555; }
-        .group-number-row input { width: 70px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; outline: none; }
-        .group-enter-btn { width: 100%; margin-top: 16px; padding: 14px; border: none; border-radius: 10px; background: linear-gradient(135deg, #1a237e, #283593); color: white; font-size: 16px; font-weight: 600; cursor: pointer; }
-        .group-enter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .group-select-box { background: rgba(255,255,255,0.97); border-radius: 24px; padding: 36px 28px 28px; max-width: 460px; width: 100%; text-align: center; box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1); position: relative; animation: gsSlideUp 0.5s cubic-bezier(0.16,1,0.3,1); }
+        @keyframes gsSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .gs-decor { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+        .gs-decor-line { width: 40px; height: 3px; background: linear-gradient(90deg, transparent, #ff6f00, transparent); border-radius: 2px; }
+        .group-select-box h2 { font-size: 20px; color: #1a237e; margin-bottom: 2px; letter-spacing: 0.5px; }
+        .group-select-box .gs-subtitle { font-size: 13px; color: #999; margin-bottom: 28px; }
+        .group-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+        .group-select-btn { padding: 22px 10px 16px; border: 2.5px solid #e8e8e8; border-radius: 16px; background: #fafafa; cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1); text-align: center; position: relative; overflow: hidden; }
+        .group-select-btn::after { content: ''; position: absolute; inset: 0; border-radius: 14px; opacity: 0; transition: opacity 0.3s; }
+        .group-select-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); border-color: #bbb; }
+        .group-select-btn:active { transform: translateY(0); }
+        .group-select-btn .gs-icon { font-size: 42px; display: block; margin-bottom: 8px; transition: transform 0.3s; position: relative; z-index: 1; }
+        .group-select-btn:hover .gs-icon { transform: scale(1.1); }
+        .group-select-btn .gs-name { font-size: 15px; font-weight: 700; color: #333; position: relative; z-index: 1; }
+        .group-select-btn .gs-hint { font-size: 11px; color: #aaa; margin-top: 2px; position: relative; z-index: 1; }
+        /* 选中状态 */
+        .group-select-btn[data-selected="true"] { border-color: var(--gs-color); background: var(--gs-bg); box-shadow: 0 0 0 4px var(--gs-ring); }
+        .group-select-btn[data-selected="true"] .gs-name { color: var(--gs-color); }
+        .group-number-row { display: flex; align-items: center; gap: 10px; margin-top: 0; justify-content: center; }
+        .group-number-row label { font-size: 15px; color: #555; font-weight: 500; }
+        .group-number-row input { width: 72px; padding: 12px 8px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; text-align: center; outline: none; font-weight: 700; transition: border-color 0.2s; }
+        .group-number-row input:focus { border-color: #1a237e; box-shadow: 0 0 0 3px rgba(26,35,126,0.1); }
+        .group-enter-btn { width: 100%; margin-top: 18px; padding: 16px; border: none; border-radius: 14px; background: linear-gradient(135deg, #283593, #1a237e); color: white; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.3s; letter-spacing: 1px; box-shadow: 0 4px 16px rgba(26,35,126,0.3); }
+        .group-enter-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(26,35,126,0.4); }
+        .group-enter-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+        /* 返回课堂提示条 */
+        #returnClassBar { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 2px solid #2e7d32; border-radius: 12px; padding: 12px 16px; margin-bottom: 18px; text-align: center; animation: gsSlideUp 0.4s ease-out; }
+        #returnClassBar .rc-icon { font-size: 28px; display: block; margin-bottom: 4px; }
 
         .app-header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
         .header-title { font-size: 17px; font-weight: 600; }
@@ -219,6 +236,31 @@
         .viewer-body { flex: 1; display: flex; align-items: center; justify-content: center; }
         .viewer-body img { max-width: 90%; max-height: 90%; object-fit: contain; transition: transform 0.2s; }
 
+        /* ========== 图片库弹窗 ========== */
+        .image-library-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 600; flex-direction: column; }
+        .image-library-overlay.active { display: flex; }
+        .il-box { background: white; border-radius: 20px 20px 0 0; max-width: 600px; width: 100%; margin: auto auto 0; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(0,0,0,0.3); animation: gsSlideUp 0.35s ease-out; }
+        @media (min-width: 768px) { .il-box { border-radius: 20px; margin: auto; max-height: 80vh; } }
+        .il-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; flex-shrink: 0; }
+        .il-header h3 { font-size: 17px; color: #1a237e; display: flex; align-items: center; gap: 8px; }
+        .il-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 4px 8px; }
+        .il-close:hover { color: #333; }
+        .il-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; overflow-y: auto; flex: 1; }
+        @media (min-width: 500px) { .il-grid { grid-template-columns: repeat(4, 1fr); } }
+        .il-item { border: 2px solid #e0e0e0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; position: relative; background: #fafafa; }
+        .il-item:hover { border-color: #90caf9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .il-item.selected { border-color: #1a237e; box-shadow: 0 0 0 3px rgba(26,35,126,0.2); }
+        .il-item img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+        .il-item .il-check { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; background: #1a237e; color: white; display: none; align-items: center; justify-content: center; font-size: 14px; }
+        .il-item.selected .il-check { display: flex; }
+        .il-item .il-name { font-size: 11px; color: #666; padding: 6px 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .il-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #eee; flex-shrink: 0; }
+        .il-footer button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .il-btn-cancel { background: #f5f5f5; color: #666; }
+        .il-btn-confirm { background: linear-gradient(135deg, #1a237e, #283593); color: white; }
+        .il-btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+        .il-count { font-size: 13px; color: #1a237e; font-weight: 600; }
+
         @media (min-width: 768px) { .main-content { max-width: 720px; margin: 0 auto; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -228,12 +270,14 @@
     <div class="group-select-overlay" id="groupSelectOverlay">
         <div class="group-select-box">
             <!-- 返回课堂按钮：如果有已保存的课堂状态就显示 -->
-            <div id="returnClassBar" style="display:none;background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:center;">
-                <div style="font-size:14px;color:#2e7d32;font-weight:700;margin-bottom:6px;">📋 检测到你正在上课中</div>
-                <button onclick="resumeClass()" style="background:#2e7d32;color:white;border:none;padding:8px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🏠 返回课堂</button>
+            <div id="returnClassBar" style="display:none;">
+                <span class="rc-icon">📋</span>
+                <div style="font-size:14px;color:#2e7d32;font-weight:700;margin-bottom:6px;">检测到你正在上课中</div>
+                <button onclick="resumeClass()" style="background:#2e7d32;color:white;border:none;padding:10px 24px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">🏠 返回课堂</button>
             </div>
-            <h2>🚂 透过西伯利亚大铁路看俄罗斯</h2>
-            <p>请选择你的小组</p>
+            <div class="gs-decor"><span class="gs-decor-line"></span><span style="font-size:28px;">🚂</span><span class="gs-decor-line"></span></div>
+            <h2>透过西伯利亚大铁路看俄罗斯</h2>
+            <p class="gs-subtitle">请选择你的小组并填写组号</p>
             <div class="group-grid" id="groupGrid"></div>
             <div class="group-number-row"><label>第</label><input type="number" id="groupNumber" min="1" max="10" value="1"><label>小组</label></div>
             <button class="group-enter-btn" id="enterBtn" disabled onclick="enterApp()">进入课堂</button>
@@ -264,7 +308,7 @@
         <button class="action-btn submit" onclick="submitResult()">📤 提交成果</button>
         <button class="action-btn refresh" onclick="refreshWall()">🔄 刷新成果</button>
         <button class="action-btn clear-group" onclick="clearGroupData()">🗑 清空本组</button>
-        <button class="action-btn clear-all" onclick="clearAllData()">⚠ 清空全部（学生勿点）</button>
+        <button class="action-btn clear-all" onclick="clearAllData()">⚠️ 清空全部【仅老师·学生勿点】</button>
     </div>
 
     <!-- 展示模式 -->
@@ -323,6 +367,22 @@
         </div>
         <div class="viewer-body"><img id="viewerImage" src="" alt=""></div>
     </div>
+
+    <!-- 图片库弹窗 -->
+    <div class="image-library-overlay" id="imageLibraryOverlay">
+        <div class="il-box">
+            <div class="il-header">
+                <h3>📚 老师图片库</h3>
+                <button class="il-close" onclick="closeImageLibrary()">✕</button>
+            </div>
+            <div style="padding:4px 20px;font-size:13px;color:#888;">点击图片选中，可多选 <span class="il-count" id="ilCount">已选 0 张</span></div>
+            <div class="il-grid" id="ilGrid"></div>
+            <div class="il-footer">
+                <button class="il-btn-cancel" onclick="closeImageLibrary()">取消</button>
+                <button class="il-btn-confirm" id="ilConfirmBtn" disabled onclick="confirmImageLibrary()">✓ 添加到图册</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -374,21 +434,26 @@ let isDrawing=false, lastX=0, lastY=0;
 window.addEventListener('DOMContentLoaded',()=>{
     renderGroupSelection();
     detectServer();
-    // 显示"返回课堂"按钮（如果有已保存的课堂状态）
     const s=localStorage.getItem('selectedGroup');
     if(s)try{
         const d=JSON.parse(s);
         if(d.group){
             selectGroup(d.group);
             document.getElementById('groupNumber').value=d.num||1;
-            // 如果有之前的上课记录，显示返回课堂按钮
             if(d.entered===true){
-                const bar=document.getElementById('returnClassBar');
-                if(bar)bar.style.display='block';
+                // ★ 自动恢复课堂状态，不再显示小组选择界面
+                currentGroup=d.group;
+                currentGroupNum=d.num||1;
+                document.getElementById('groupSelectOverlay').classList.add('hidden');
+                const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='flex';
+                renderMainApp();
+                restoreDraft();
+                updateServerStatus();
+                return; // ★ 跳过后续手动选择逻辑
             }
         }
     }catch(e){}
-    // 始终显示小组选择界面，不自动跳过
+    // 即使没有 entered 状态，也显示返回课堂按钮（兼容旧格式）
 });
 
 // 离开页面时自动保存草稿
@@ -418,17 +483,37 @@ function updateServerStatus(){
 }
 
 // ============ 小组选择 ============
-function renderGroupSelection(){document.getElementById('groupGrid').innerHTML=Object.entries(GROUPS).map(([k,g])=>`<div class="group-select-btn" data-group="${k}" onclick="selectGroup('${k}')"><span class="gs-icon">${g.icon}</span><span class="gs-name">${g.name}</span></div>`).join('');}
-function selectGroup(k){selectedGroup=k;document.querySelectorAll('.group-select-btn').forEach(b=>{b.style.borderColor=b.dataset.group===k?GROUPS[k].color:'#e0e0e0';b.style.background=b.dataset.group===k?GROUPS[k].color+'10':'white';});updateEnterBtn();}
+function renderGroupSelection(){
+    document.getElementById('groupGrid').innerHTML=Object.entries(GROUPS).map(([k,g])=>`<div class="group-select-btn" data-group="${k}" onclick="selectGroup('${k}')" style="--gs-color:${g.color};--gs-bg:${g.color}10;--gs-ring:${g.color}20;"><span class="gs-icon">${g.icon}</span><span class="gs-name">${g.name}</span><span class="gs-hint">${g.keyword.split(' ')[0]}</span></div>`).join('');
+}
+function selectGroup(k){
+    selectedGroup=k;
+    document.querySelectorAll('.group-select-btn').forEach(b=>{
+        const isSel=b.dataset.group===k;
+        b.setAttribute('data-selected',isSel?'true':'false');
+    });
+    updateEnterBtn();
+}
 function updateEnterBtn(){document.getElementById('enterBtn').disabled=!selectedGroup||!document.getElementById('groupNumber').value;}
 document.getElementById('groupNumber').addEventListener('input',updateEnterBtn);
-function enterApp(){if(!selectedGroup)return;currentGroup=selectedGroup;currentGroupNum=parseInt(document.getElementById('groupNumber').value)||1;localStorage.setItem('selectedGroup',JSON.stringify({group:currentGroup,num:currentGroupNum,entered:true}));document.getElementById('groupSelectOverlay').classList.add('hidden');
-    // 隐藏返回课堂提示栏，显示浮动按钮
+function enterApp(){
+    if(!selectedGroup)return;
+    const prevGroup=currentGroup, prevNum=currentGroupNum;
+    currentGroup=selectedGroup;
+    currentGroupNum=parseInt(document.getElementById('groupNumber').value)||1;
+    localStorage.setItem('selectedGroup',JSON.stringify({group:currentGroup,num:currentGroupNum,entered:true}));
+    document.getElementById('groupSelectOverlay').classList.add('hidden');
     const bar=document.getElementById('returnClassBar');if(bar)bar.style.display='none';
     const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='flex';
-    // ★ 切换小组时清空图片，防止上一组的图片泄漏到当前组
-    uploadedImages=[];imageUrls=[];
-    renderMainApp();restoreDraft();updateServerStatus();}
+    // ★ 只有切换到不同小组时才清空图片
+    if(currentGroup!==prevGroup||currentGroupNum!==prevNum){
+        uploadedImages=[];imageUrls=[];
+    }
+    renderMainApp();
+    // ★ 加载草稿（会恢复之前填的内容和图片）
+    restoreDraft();
+    updateServerStatus();
+}
 function switchGroup(){document.getElementById('groupSelectOverlay').classList.remove('hidden');const bar=document.getElementById('returnClassBar');if(bar){const s=localStorage.getItem('selectedGroup');if(s)try{const d=JSON.parse(s);if(d.entered===true)bar.style.display='block';}catch(e){}} const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='none';}
 function resumeClass(){const s=localStorage.getItem('selectedGroup');if(!s)return;try{const d=JSON.parse(s);if(d.group){currentGroup=d.group;currentGroupNum=d.num||1;document.getElementById('groupSelectOverlay').classList.add('hidden');const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='flex';renderMainApp();restoreDraft();updateServerStatus();showNotification('✅ 已返回课堂');window.scrollTo({top:0,behavior:'smooth'});}}catch(e){}}
 
@@ -443,23 +528,22 @@ function renderMainApp(){
         <div class="task-section"><div class="task-title"><span class="emoji">📸</span>任务一：${g.task1.title}</div>
             <div class="upload-area" id="uploadArea" onclick="triggerUpload()"><div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div></div>
             <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
-            <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button></div>
+            <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button><button class="upload-btn" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button></div>
         </div>
         <div class="task-section"><div class="task-title"><span class="emoji">📝</span>根据上传的图片，归纳特征并回答：</div>
-            <div class="answer-area"><div class="answer-label">${g.task1.featureLabel}：</div><textarea class="answer-textarea" id="featureAnswer" placeholder="${g.task1.featurePH}"></textarea></div>
+            <div class="answer-area"><div class="answer-label">${g.task1.featureLabel}：</div><textarea class="answer-textarea" id="featureAnswer" placeholder="${g.task1.featurePH}" oninput="autoSaveDraft()"></textarea></div>
         </div>
         <div class="task-section"><div class="task-title"><span class="emoji">🚂</span>任务二：分析该因素对西伯利亚大铁路建设的影响</div>
             <div class="tip-box"><div class="tip-label">💡 提示：可以分别从俄罗斯<strong>西部</strong>和<strong>东部</strong>两个区域进行分析</div></div>
-            <div class="region-analysis"><div class="region-card west"><div class="region-label">${g.task2.westTitle}</div><textarea class="answer-textarea" id="westAnswer" placeholder="${g.task2.westPH}"></textarea></div><div class="region-card east"><div class="region-label">${g.task2.eastTitle}</div><textarea class="answer-textarea" id="eastAnswer" placeholder="${g.task2.eastPH}"></textarea></div></div>
-            <div class="conclusion-section"><div class="conclusion-label">📋 综合结论</div><textarea class="answer-textarea" id="conclusionAnswer" placeholder="${g.task2.conclusionPH}"></textarea></div>
+            <div class="region-analysis"><div class="region-card west"><div class="region-label">${g.task2.westTitle}</div><textarea class="answer-textarea" id="westAnswer" placeholder="${g.task2.westPH}" oninput="autoSaveDraft()"></textarea></div><div class="region-card east"><div class="region-label">${g.task2.eastTitle}</div><textarea class="answer-textarea" id="eastAnswer" placeholder="${g.task2.eastPH}" oninput="autoSaveDraft()"></textarea></div></div>
+            <div class="conclusion-section"><div class="conclusion-label">📋 综合结论</div><textarea class="answer-textarea" id="conclusionAnswer" placeholder="${g.task2.conclusionPH}" oninput="autoSaveDraft()"></textarea></div>
         </div>
         <div class="task-section"><div class="task-title"><span class="emoji">🔍</span>任务三：搜索验证你的结论</div>
             <div class="task-description">搜索<strong>真实图片</strong>或<strong>地理数据</strong>来验证推论</div>
-            <div class="search-buttons"><button class="search-btn image" onclick="searchBaiduImages()"><span class="btn-icon">🖼️</span>搜图片</button></div>
-            <div class="search-guide"><div class="search-guide-title">💡 搜索图片并上传</div><ol><li>点击上方【搜图片】按钮，自动在新标签页打开必应图片搜索</li><li><strong>长按图片 → 保存图片到相册</strong></li><li>保存完成后<strong style="color:#c62828;font-size:15px;">切换回课堂标签页</strong>，点击下方按钮上传</li></ol>
-                <div style="text-align:center;margin-top:10px;padding:8px;background:#e8f5e9;border-radius:6px;font-size:13px;color:#2e7d32;font-weight:600;">📋 搜图完成后，按浏览器【返回】键即可回到本页面</div>
+            <div class="search-guide"><div class="search-guide-title">💡 搜索验证图片</div><ol><li>点击下方按钮，在新标签页打开<strong>必应图片搜索</strong></li><li><strong>长按图片 → 保存图片到相册</strong></li><li>保存后<strong style="color:#c62828;font-size:15px;">按浏览器返回键</strong>回到本页面，点击下方按钮上传</li></ol>
+                <div style="text-align:center;margin:12px 0;"><button class="search-btn image" onclick="searchBaiduImages()" style="width:100%;max-width:300px;"><span class="btn-icon">🔍</span>搜索必应图片</button></div>
                 <div style="font-size:13px;color:#666;margin-bottom:10px;">从相册添加搜索到的图片：</div>
-                <div class="search-upload-btns"><button class="search-upload-btn" onclick="openCamera()"><span>📷</span>拍照上传</button><button class="search-upload-btn" onclick="triggerUpload()"><span>🖼️</span>从相册选择</button></div>
+                <div class="search-upload-btns"><button class="search-upload-btn" onclick="openCamera()"><span>📷</span>拍照上传</button><button class="search-upload-btn" onclick="triggerUpload()"><span>🖼️</span>从相册选择</button><button class="search-upload-btn" onclick="openImageLibrary()"><span>📚</span>图片库</button></div>
             </div>
             <div style="margin-top:12px;"></div>
         </div>
@@ -506,7 +590,8 @@ async function handleFileUpload(e){
 }
 
 function fileToBase64(f){return new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f);});}
-function updateUploadArea(){const a=document.getElementById('uploadArea');if(!a)return;if(!uploadedImages.length){a.innerHTML='<div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div>';}else{a.innerHTML='<div class="uploaded-thumbs">'+uploadedImages.map((s,i)=>`<div class="thumb-wrap" style="position:relative;display:inline-block;"><img src="${s}" onclick="event.stopPropagation();openViewer(${i})" onerror="this.src=\'\';this.alt=\'❌图片加载失败\'"><button class="thumb-delete-btn" onclick="event.stopPropagation();deleteImage(${i})" title="删除这张图片">✕</button></div>`).join('')+'</div><div style="font-size:12px;color:#888;margin-top:8px;">已上传 '+uploadedImages.length+' 张图片，点击图片查看，点击 ✕ 删除</div>';}}
+function updateUploadArea(){const a=document.getElementById('uploadArea');if(!a)return;if(!uploadedImages.length){a.innerHTML='<div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div>';}else{a.innerHTML='<div class="uploaded-thumbs">'+uploadedImages.map((s,i)=>`<div class="thumb-wrap" style="position:relative;display:inline-block;"><img src="${s}" onclick="event.stopPropagation();openViewer(${i})" onerror="imgErrFix(this)"><button class="thumb-delete-btn" onclick="event.stopPropagation();deleteImage(${i})" title="删除这张图片">✕</button></div>`).join('')+'</div><div style="font-size:12px;color:#888;margin-top:8px;">已上传 '+uploadedImages.length+' 张图片，点击图片查看，点击 ✕ 删除</div>';}}
+function imgErrFix(el){el.style.display='none';el.alt='图片加载失败';}
 function deleteImage(idx){
     if(!confirm('确定要删除这张图片吗？'))return;
     uploadedImages.splice(idx,1);
@@ -528,7 +613,77 @@ document.getElementById('imageViewer').addEventListener('click',function(e){if(e
 
 // ============ 搜索图片 ============
 
-function searchBaiduImages(){const g=GROUPS[currentGroup];showNotification('正在新标签页打开必应图片搜索，保存图片后切换回课堂标签页');window.open(`https://cn.bing.com/images/search?q=${encodeURIComponent(g.keyword)}`,'_blank');}
+function searchBaiduImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();showNotification('🔍 正在新标签页打开必应图片搜索...');window.open(`https://cn.bing.com/images/search?q=${encodeURIComponent(g.keyword)}`,'_blank');}
+
+// ============ 图片库 ============
+let libraryImages=[], selectedLibraryIdx=[];
+
+async function openImageLibrary(){
+    document.getElementById('imageLibraryOverlay').classList.add('active');
+    document.getElementById('ilGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">⏳ 加载中...</div>';
+    selectedLibraryIdx=[];
+    updateIlCount();
+    try{
+        const r=await fetch('/api/image_library');
+        const d=await r.json();
+        libraryImages=d.images||[];
+        renderImageLibrary();
+    }catch(e){
+        document.getElementById('ilGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#c62828;">❌ 加载失败，请检查网络</div>';
+    }
+}
+function closeImageLibrary(){document.getElementById('imageLibraryOverlay').classList.remove('active');}
+function renderImageLibrary(){
+    const grid=document.getElementById('ilGrid');
+    if(!libraryImages.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">📭 图片库为空</div>';return;}
+    grid.innerHTML=libraryImages.map((img,i)=>{
+        const sel=selectedLibraryIdx.includes(i);
+        return `<div class="il-item${sel?' selected':''}" onclick="toggleLibraryImage(${i})">
+            <img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.parentElement.style.display='none'">
+            <div class="il-check">✓</div>
+            <div class="il-name">${img.name}</div>
+        </div>`;
+    }).join('');
+}
+function toggleLibraryImage(idx){
+    const pos=selectedLibraryIdx.indexOf(idx);
+    if(pos>=0)selectedLibraryIdx.splice(pos,1);
+    else selectedLibraryIdx.push(idx);
+    updateIlCount();
+    renderImageLibrary();
+}
+function updateIlCount(){
+    document.getElementById('ilCount').textContent=`已选 ${selectedLibraryIdx.length} 张`;
+    document.getElementById('ilConfirmBtn').disabled=selectedLibraryIdx.length===0;
+}
+async function confirmImageLibrary(){
+    if(!selectedLibraryIdx.length)return;
+    const n=selectedLibraryIdx.length;
+    showNotification(`⏳ 正在添加 ${n} 张图片...`);
+    let added=0;
+    for(const idx of selectedLibraryIdx){
+        const img=libraryImages[idx];
+        if(!img)continue;
+        try{
+            // 尝试 fetch 图片并转 base64（确保跨设备也能看）
+            const resp=await fetch(img.url);
+            const blob=await resp.blob();
+            const b64=await new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(blob);});
+            uploadedImages.push(b64);
+            imageUrls.push(img.url);
+            added++;
+        }catch(e){
+            // 降级：直接用服务器URL
+            uploadedImages.push(img.url);
+            imageUrls.push(img.url);
+            added++;
+        }
+    }
+    updateUploadArea();
+    saveDraft();
+    closeImageLibrary();
+    showNotification(`✅ 已从图片库添加 ${added} 张图片！`);
+}
 
 // ============ 清空数据 ============
 async function clearGroupData(){
@@ -557,8 +712,8 @@ async function clearGroupData(){
 }
 
 async function clearAllData(){
-    if(!confirm('⚠️⚠️ 确定要清空【所有小组】的全部数据吗？\n\n此操作不可撤销，将清除所有组已上传的图片和提交的成果！\n\n建议先确认是否需要备份。'))return;
-    if(!confirm('再次确认：真的要清空所有数据吗？'))return;
+    if(!confirm('⚠️⚠️ 【仅限老师操作！学生请勿使用！】\n\n确定要清空【所有小组】的全部数据吗？\n\n此操作不可撤销，将清除所有组已上传的图片和提交的成果！\n\n如果你是学生，请点击【取消】！'))return;
+    if(!confirm('再次确认：你真的要清空所有数据吗？\n\n⚠️ 仅老师可以执行此操作！'))return;
     // 1. 清空本地
     uploadedImages=[];imageUrls=[];
     updateUploadArea();
@@ -875,6 +1030,8 @@ function closePresentation(){document.getElementById('presOverlay').classList.re
 
 // ============ 草稿 ============
 function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+let _saveTimer=null;
+function autoSaveDraft(){if(_saveTimer)clearTimeout(_saveTimer);_saveTimer=setTimeout(()=>{saveDraft();},800);}
 function saveDraft(){if(!currentGroup)return;try{const d=collectData();d.imageUrls=imageUrls.slice();localStorage.setItem(`draft_${currentGroup}_${currentGroupNum}`,JSON.stringify(d));}catch(e){}}
 function loadDraft(){try{const data=JSON.parse(localStorage.getItem(`draft_${currentGroup}_${currentGroupNum}`)||'null');if(!data)return false;if(data.feature)document.getElementById('featureAnswer').value=data.feature;if(data.west)document.getElementById('westAnswer').value=data.west;if(data.east)document.getElementById('eastAnswer').value=data.east;if(data.conclusion)document.getElementById('conclusionAnswer').value=data.conclusion;if(data.images&&data.images.length){uploadedImages=data.images;updateUploadArea();}if(data.imageUrls&&data.imageUrls.length){imageUrls=data.imageUrls;}return true;}catch(e){return false;}}
 function restoreDraft(){const ok=loadDraft();if(ok)showNotification('✅ 已恢复上次编辑的内容');}

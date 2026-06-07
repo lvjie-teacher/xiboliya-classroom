@@ -390,6 +390,23 @@ def api_web_search():
     except Exception as e:
         return jsonify({"answer": f"搜索失败: {str(e)}"})
 
+# ============ 图片库 API ============
+
+IMAGE_LIB_DIR = STATIC_DIR / "image_lib"
+
+@app.route('/api/image_library')
+def api_image_library():
+    """返回老师准备的图片库列表"""
+    images = []
+    if IMAGE_LIB_DIR.exists():
+        for f in sorted(IMAGE_LIB_DIR.iterdir()):
+            if f.suffix.lower() in ('.jpg', '.jpeg', '.png', '.gif', '.webp'):
+                images.append({
+                    "name": f.stem,
+                    "url": f"/image_lib/{f.name}"
+                })
+    return jsonify({"images": images})
+
 # ============ 静态文件服务 ============
 
 @app.route('/')
