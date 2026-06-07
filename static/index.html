@@ -546,7 +546,6 @@ function renderMainApp(){
             <div class="search-guide"><div class="search-guide-title">💡 搜索验证图片</div><ol><li>点击下方按钮，在新标签页打开<strong>Bing图片搜索</strong></li><li>找到合适图片后：<strong style="color:#c62828;">📱 截屏！</strong>（同时按 电源键+音量减，最可靠）</li><li>也可<strong>长按大图</strong>→「保存图片」（部分手机有效）</li><li>保存后<strong style="color:#c62828;font-size:15px;">按浏览器返回键</strong>回到本页面，点击下方按钮上传</li></ol>
                 <div style="text-align:center;margin:12px 0;"><button class="search-btn image" onclick="searchImages()" style="width:100%;max-width:300px;"><span class="btn-icon">🔍</span>搜索Bing图片</button></div>
                 <div style="font-size:13px;color:#666;margin-bottom:10px;">从相册添加搜索到的图片：</div>
-                <div class="search-upload-btns"><button class="search-upload-btn" onclick="openCamera()"><span>📷</span>拍照上传</button><button class="search-upload-btn" onclick="triggerUpload()"><span>🖼️</span>从相册选择</button><button class="search-upload-btn" onclick="openImageLibrary()"><span>📚</span>图片库</button></div>
             </div>
             <div style="margin-top:12px;"></div>
         </div>
@@ -690,7 +689,7 @@ async function confirmImageLibrary(){
 
 // ============ 清空数据 ============
 async function clearGroupData(){
-    if(!currentGroup)return;
+    if(!currentGroup){showNotification('⚠️ 当前未选择小组，请先选择小组再清空！');return;}
     const g=GROUPS[currentGroup];
     if(!confirm(`⚠️ 确定要清空【${g.name}第${currentGroupNum}组】的所有数据吗？\n\n此操作不可撤销，将清除本组已上传的图片和提交的成果。`))return;
     // 1. 清空本地
@@ -842,14 +841,14 @@ async function refreshWall(){
         }
     }
 
-    // 2. 合并本地内存中的成果
-    for(const k in sessionResults)results[k]=sessionResults[k];
-
-    // 3. 合并localStorage中的成果
-    try{
-        const l=JSON.parse(localStorage.getItem('classResults')||'{}');
-        for(const k in l)if(!results[k])results[k]=l[k];
-    }catch(e){}
+    // 2&3. 仅在不连服务器时用本地数据补充（避免服务器清空后本地旧数据覆盖）
+    if(!serverMode){
+        for(const k in sessionResults)results[k]=sessionResults[k];
+        try{
+            const l=JSON.parse(localStorage.getItem('classResults')||'{}');
+            for(const k in l)if(!results[k])results[k]=l[k];
+        }catch(e){}
+    }
 
     cachedResults=results;
     renderAchievementWall(results);
@@ -862,8 +861,12 @@ async function refreshWall(){
     }
 }
 
-// 自动刷新：每10秒从服务器拉取最新成果（仅检测serverMode，不依赖currentGroup）
-setInterval(()=>{if(serverMode)refreshWall();},10000);
+// 自动刷新：每10秒尝试刷新成果墙（只要不是本地文件就刷新）
+setInterval(()=>{
+    if(window.location.protocol!=='file:' && window.location.hostname!==''){
+        refreshWall();
+    }
+},10000);
 
 function renderAchievementWall(results){
     const body=document.getElementById('achievementBody');const entries=Object.entries(results);
@@ -895,8 +898,10 @@ function openViewerFromWall(gid,idx){let r=cachedResults[gid];if(!r)try{r=JSON.p
 function presentGroup(){const data=collectData();const g=GROUPS[currentGroup];if(!(data.feature||data.west||data.east||data.conclusion||data.images.length>0)){showNotification('请先完成任务内容再展示');return;}presGroups=[{...data,group_key:currentGroup,group_icon:g.icon,group_name:g.name,group_num:currentGroupNum,color:g.color}];presGroupIdx=0;enterPresentation();}
 async function presentAll(){
     let results={};if(serverMode){try{const r=await fetch('/api/results?_t='+Date.now());results=await r.json();}catch(e){}}
+    if(!serverMode){
     for(const k in sessionResults)results[k]=sessionResults[k];
     try{const l=JSON.parse(localStorage.getItem('classResults')||'{}');for(const k in l)if(!results[k])results[k]=l[k];}catch(e){}
+    }
     const vals=Object.values(results);const g=GROUPS[currentGroup];
     presGroups=vals.length?vals.map(r=>{const g2=GROUPS[r.group_key]||GROUPS.terrain;return{...r,group_key:r.group_key,group_icon:g2.icon,group_name:r.group_name||g2.name,group_num:r.group_num,color:g2.color};}):[{...collectData(),group_key:currentGroup,group_icon:g.icon,group_name:g.name,group_num:currentGroupNum,color:g.color}];
     presGroupIdx=0;enterPresentation();
