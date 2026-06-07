@@ -435,9 +435,13 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(d.group){
             selectGroup(d.group);
             document.getElementById('groupNumber').value=d.num||1;
-            // ★ 只在从必应返回（sessionStorage有标记）时才自动恢复课堂
-            if(d.entered===true && sessionStorage.getItem('_bingReturn')==='1'){
-                sessionStorage.removeItem('_bingReturn');
+            // ★ 只在从必应返回（localStorage有标记且1小时内）时才自动恢复课堂
+            const _bingFlag=localStorage.getItem('_bingReturn');
+            const _bingTime=parseInt(localStorage.getItem('_bingReturnTime')||'0');
+            const _bingValid=_bingFlag==='1' && (Date.now()-_bingTime)<3600000;
+            if(d.entered===true && _bingValid){
+                localStorage.removeItem('_bingReturn');
+                localStorage.removeItem('_bingReturnTime');
                 currentGroup=d.group;
                 currentGroupNum=d.num||1;
                 document.getElementById('groupSelectOverlay').classList.add('hidden');
@@ -609,7 +613,7 @@ document.getElementById('imageViewer').addEventListener('click',function(e){if(e
 
 // ============ 搜索图片 ============
 
-function searchBaiduImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();sessionStorage.setItem('_bingReturn','1');showNotification('🔍 正在新标签页打开必应图片搜索...');window.open(`https://cn.bing.com/images/search?q=${encodeURIComponent(g.keyword)}`,'_blank');}
+function searchBaiduImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();localStorage.setItem('_bingReturn','1');localStorage.setItem('_bingReturnTime',Date.now().toString());showNotification('🔍 正在新标签页打开必应图片搜索...');window.open(`https://cn.bing.com/images/search?q=${encodeURIComponent(g.keyword)}`,'_blank');}
 
 // ============ 图片库 ============
 let libraryImages=[], selectedLibraryIdx=[];
