@@ -540,8 +540,8 @@ function renderMainApp(){
         </div>
         <div class="task-section"><div class="task-title"><span class="emoji">🔍</span>任务三：搜索验证你的结论</div>
             <div class="task-description">搜索<strong>真实图片</strong>或<strong>地理数据</strong>来验证推论</div>
-            <div class="search-guide"><div class="search-guide-title">💡 搜索验证图片</div><ol><li>点击下方按钮，在新标签页打开<strong>百度图片搜索</strong></li><li><strong>点击图片 → 长按大图 → 保存到相册</strong></li><li>如果无法长按，也可<strong>截屏</strong>后回到本页面上传</li><li>保存后<strong style="color:#c62828;font-size:15px;">按浏览器返回键</strong>回到本页面，点击下方按钮上传</li></ol>
-                <div style="text-align:center;margin:12px 0;"><button class="search-btn image" onclick="searchImages()" style="width:100%;max-width:300px;"><span class="btn-icon">🔍</span>百度搜索图片</button></div>
+            <div class="search-guide"><div class="search-guide-title">💡 搜索验证图片</div><ol><li>点击下方按钮，在新标签页打开<strong>搜狗图片搜索</strong></li><li>点击任意一张<strong>缩略图</strong>，进入大图模式</li><li><strong>长按大图 → 点击「保存图片」</strong>到相册</li><li>保存后<strong style="color:#c62828;font-size:15px;">按浏览器返回键</strong>回到本页面，点击下方按钮上传</li></ol>
+                <div style="text-align:center;margin:12px 0;"><button class="search-btn image" onclick="searchImages()" style="width:100%;max-width:300px;"><span class="btn-icon">🔍</span>搜索图片</button></div>
                 <div style="font-size:13px;color:#666;margin-bottom:10px;">从相册添加搜索到的图片：</div>
                 <div class="search-upload-btns"><button class="search-upload-btn" onclick="openCamera()"><span>📷</span>拍照上传</button><button class="search-upload-btn" onclick="triggerUpload()"><span>🖼️</span>从相册选择</button><button class="search-upload-btn" onclick="openImageLibrary()"><span>📚</span>图片库</button></div>
             </div>
@@ -613,7 +613,7 @@ document.getElementById('imageViewer').addEventListener('click',function(e){if(e
 
 // ============ 搜索图片 ============
 
-function searchImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();localStorage.setItem('_bingReturn','1');localStorage.setItem('_bingReturnTime',Date.now().toString());showNotification('🔍 正在新标签页打开百度图片搜索...');window.open(`https://image.baidu.com/search?word=${encodeURIComponent(g.keyword)}`,'_blank');}
+function searchImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();localStorage.setItem('_bingReturn','1');localStorage.setItem('_bingReturnTime',Date.now().toString());showNotification('🔍 正在新标签页打开搜狗图片搜索...');window.open(`https://pic.sogou.com/pics?query=${encodeURIComponent(g.keyword)}`,'_blank');}
 
 // ============ 图片库 ============
 let libraryImages=[], selectedLibraryIdx=[];
