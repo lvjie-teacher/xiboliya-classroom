@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-从西伯利亚大铁路看俄罗斯 - 课堂成果共享服务器
+透过西伯利亚大铁路看俄罗斯 - 课堂成果共享服务器
 打包成 exe 后可直接运行，无需安装 Python
 用法：server.exe  或  python server.py
 """
@@ -565,7 +565,7 @@ def print_banner(all_ips, port, fw_ok, fw_msg):
     lines = [
         "",
         "=" * 64,
-        "  [*] 从西伯利亚大铁路看俄罗斯 · 课堂服务器",
+        "  [*] 透过西伯利亚大铁路看俄罗斯 · 课堂服务器",
         "=" * 64,
         "  [OK] 服务器已启动！",
         "",
@@ -639,7 +639,7 @@ if __name__ == '__main__':
 
     if IS_CLOUD:
         # ===== 云部署模式 =====
-        print(f"\n  [云部署] 从西伯利亚大铁路看俄罗斯 · 课堂服务器")
+        print(f"\n  [云部署] 透过西伯利亚大铁路看俄罗斯 · 课堂服务器")
         print(f"  [OK] 端口: {PORT}")
         print(f"  [OK] 公网可访问！\n")
         app.run(host='0.0.0.0', port=PORT, debug=False, threaded=True)
