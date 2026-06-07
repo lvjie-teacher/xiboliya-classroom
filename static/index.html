@@ -581,8 +581,10 @@ async function handleFileUpload(e){
     }
 
     updateUploadArea();
+    saveDraft();
     showNotification(`✅ 已添加 ${n} 张图片到图册！`);
     e.target.value='';
+    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{presentGroup();},500);}
 }
 
 function fileToBase64(f){return new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f);});}
