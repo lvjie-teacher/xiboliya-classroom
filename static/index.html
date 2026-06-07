@@ -584,7 +584,7 @@ async function handleFileUpload(e){
     saveDraft();
     showNotification(`✅ 已添加 ${n} 张图片到图册！`);
     e.target.value='';
-    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{presentGroup();},500);}
+    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{window._presWasAll?presentAll():presentGroup();},500);}
 }
 
 function fileToBase64(f){return new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f);});}
@@ -681,7 +681,7 @@ async function confirmImageLibrary(){
     saveDraft();
     closeImageLibrary();
     showNotification(`✅ 已从图片库添加 ${added} 张图片！`);
-    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{presentGroup();},500);}
+    if(window._presAddImageMode){window._presAddImageMode=false;setTimeout(()=>{window._presWasAll?presentAll():presentGroup();},500);}
 }
 
 // ============ 清空数据 ============
@@ -1048,7 +1048,7 @@ function presGroupPrev(){if(presGroupIdx>0){presGroupIdx--;presImgIdx=0;presZoom
 function presGroupNext(){if(presGroupIdx<presGroups.length-1){presGroupIdx++;presImgIdx=0;presZoom=1;renderPresSlide();}}
 function presJumpToGroup(idx){idx=parseInt(idx);if(idx>=0&&idx<presGroups.length){presGroupIdx=idx;presImgIdx=0;presZoom=1;renderPresSlide();}}
 function closePresentation(){document.getElementById('presOverlay').classList.remove('active');presDrawing=false;try{document.exitFullscreen?.();}catch(e){}}
-function presAddImage(){closePresentation();window._presAddImageMode=true;setTimeout(()=>{openImageLibrary();},300);}
+function presAddImage(){window._presWasAll=presGroups&&presGroups.length>1;closePresentation();window._presAddImageMode=true;setTimeout(()=>{openImageLibrary();},300);}
 
 // ============ 草稿 ============
 function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
