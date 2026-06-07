@@ -531,7 +531,7 @@ function renderMainApp(){
         <div class="task-section"><div class="task-title"><span class="emoji">📸</span>任务一：${g.task1.title}</div>
             <div class="upload-area" id="uploadArea" onclick="triggerUpload()"><div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div></div>
             <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
-            <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button><button class="upload-btn" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button></div>
+            <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button><button class="upload-btn" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button><button class="upload-btn" onclick="searchImages()" style="border-color:#42a5f5;color:#1565c0;"><span class="btn-icon">🔍</span>搜索Bing图片</button></div>
         </div>
         <div class="task-section"><div class="task-title"><span class="emoji">📝</span>根据上传的图片，归纳特征并回答：</div>
             <div class="answer-area"><div class="answer-label">${g.task1.featureLabel}：</div><textarea class="answer-textarea" id="featureAnswer" placeholder="${g.task1.featurePH}" oninput="autoSaveDraft()"></textarea></div>
@@ -540,14 +540,6 @@ function renderMainApp(){
             <div class="tip-box"><div class="tip-label">💡 提示：可以分别从俄罗斯<strong>西部</strong>和<strong>东部</strong>两个区域进行分析</div></div>
             <div class="region-analysis"><div class="region-card west"><div class="region-label">${g.task2.westTitle}</div><textarea class="answer-textarea" id="westAnswer" placeholder="${g.task2.westPH}" oninput="autoSaveDraft()"></textarea></div><div class="region-card east"><div class="region-label">${g.task2.eastTitle}</div><textarea class="answer-textarea" id="eastAnswer" placeholder="${g.task2.eastPH}" oninput="autoSaveDraft()"></textarea></div></div>
             <div class="conclusion-section"><div class="conclusion-label">📋 综合结论</div><textarea class="answer-textarea" id="conclusionAnswer" placeholder="${g.task2.conclusionPH}" oninput="autoSaveDraft()"></textarea></div>
-        </div>
-        <div class="task-section"><div class="task-title"><span class="emoji">🔍</span>任务三：搜索验证你的结论</div>
-            <div class="task-description">搜索<strong>真实图片</strong>或<strong>地理数据</strong>来验证推论</div>
-            <div class="search-guide"><div class="search-guide-title">💡 搜索验证图片</div><ol><li>点击下方按钮，在新标签页打开<strong>Bing图片搜索</strong></li><li>找到合适图片后：<strong style="color:#c62828;">📱 截屏！</strong>（同时按 电源键+音量减，最可靠）</li><li>也可<strong>长按大图</strong>→「保存图片」（部分手机有效）</li><li>保存后<strong style="color:#c62828;font-size:15px;">按浏览器返回键</strong>回到本页面，点击下方按钮上传</li></ol>
-                <div style="text-align:center;margin:12px 0;"><button class="search-btn image" onclick="searchImages()" style="width:100%;max-width:300px;"><span class="btn-icon">🔍</span>搜索Bing图片</button></div>
-                <div style="font-size:13px;color:#666;margin-bottom:10px;">从相册添加搜索到的图片：</div>
-            </div>
-            <div style="margin-top:12px;"></div>
         </div>
     </div></div>`;
     refreshWall(); loadDraft();
