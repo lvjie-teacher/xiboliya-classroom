@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🚂 西伯利亚大铁路 · 逻辑推演课</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif; background: #f0f2f5; color: #333; line-height: 1.6; }
+        .app-container { max-width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+
+        .group-select-overlay { position: fixed; inset: 0; background: linear-gradient(135deg, #1a237e, #283593); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .group-select-overlay.hidden { display: none; }
+        .group-select-box { background: white; border-radius: 20px; padding: 32px 24px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .group-select-box h2 { font-size: 22px; color: #1a237e; margin-bottom: 4px; }
+        .group-select-box p { font-size: 14px; color: #888; margin-bottom: 24px; }
+        .group-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .group-select-btn { padding: 20px 12px; border: 2px solid #e0e0e0; border-radius: 14px; background: white; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .group-select-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .group-select-btn .gs-icon { font-size: 36px; display: block; margin-bottom: 6px; }
+        .group-select-btn .gs-name { font-size: 16px; font-weight: 600; color: #333; }
+        .group-number-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; justify-content: center; }
+        .group-number-row label { font-size: 14px; color: #555; }
+        .group-number-row input { width: 70px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; outline: none; }
+        .group-enter-btn { width: 100%; margin-top: 16px; padding: 14px; border: none; border-radius: 10px; background: linear-gradient(135deg, #1a237e, #283593); color: white; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .group-enter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .app-header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .header-title { font-size: 17px; font-weight: 600; }
+        .header-subtitle { font-size: 12px; opacity: 0.8; }
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .switch-group-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .exit-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px; }
+
+        .main-content { flex: 1; padding: 16px; overflow-y: auto; padding-bottom: 80px; }
+        .step-indicator { background: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .step-list { display: flex; gap: 10px; flex-wrap: wrap; }
+        .step-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #666; }
+        .step-item.active { color: #1a237e; font-weight: 600; }
+        .step-number { width: 22px; height: 22px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; }
+        .step-item.active .step-number { background: #1a237e; }
+
+        .group-card { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .group-header { color: white; padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+        .group-icon { font-size: 24px; }
+        .group-name { font-size: 16px; font-weight: 600; }
+        .group-body { padding: 20px; }
+        .task-section { margin-bottom: 24px; animation: fadeIn 0.3s ease-out; }
+        .task-title { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: #1a237e; margin-bottom: 12px; }
+        .task-title .emoji { font-size: 20px; }
+        .task-description { font-size: 14px; color: #555; margin-bottom: 12px; padding-left: 28px; }
+
+        .upload-area { border: 2px dashed #c5cae9; border-radius: 12px; padding: 20px; text-align: center; background: #f5f5ff; cursor: pointer; transition: all 0.2s; margin-bottom: 12px; min-height: 80px; }
+        .upload-area:hover { border-color: #1a237e; background: #eef0ff; }
+        .upload-area .upload-icon { font-size: 36px; margin-bottom: 6px; }
+        .upload-area .upload-text { font-size: 14px; color: #666; }
+        .uploaded-thumbs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .uploaded-thumbs img { height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid #c5cae9; cursor: pointer; }
+        .thumb-delete-btn { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; background: #ff5252; color: white; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; }
+        .thumb-delete-btn:hover { background: #d32f2f; transform: scale(1.15); }
+        .upload-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+        .upload-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1px solid #c5cae9; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: #1a237e; }
+        .upload-btn:hover { background: #e8eaf6; }
+        .upload-btn .btn-icon { font-size: 18px; }
+
+        .answer-area { background: #fafafa; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .answer-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; }
+        .answer-textarea { width: 100%; min-height: 70px; border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; font-size: 14px; font-family: inherit; resize: vertical; outline: none; }
+        .answer-textarea:focus { border-color: #1a237e; }
+
+        .region-analysis { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+        .region-card { border-radius: 8px; padding: 14px; border-left: 4px solid; }
+        .region-card.west { background: #e3f2fd; border-left-color: #1565c0; }
+        .region-card.east { background: #ffebee; border-left-color: #c62828; }
+        .region-label { font-size: 14px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .tip-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; color: #5d4037; }
+        .tip-box .tip-label { font-weight: 600; display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .tip-box strong { color: #e65100; }
+        .conclusion-section { background: #f3e5f5; border-radius: 8px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #7b1fa2; }
+        .conclusion-label { font-size: 15px; font-weight: 600; color: #4a148c; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+
+        .search-buttons { display: flex; gap: 10px; margin-bottom: 16px; }
+        .search-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+        .search-btn.image { background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; }
+        .search-btn.image:hover { opacity: 0.9; }
+        .search-btn .btn-icon { font-size: 18px; }
+        .search-guide { background: #e8eaf6; border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+        .search-guide-title { font-size: 14px; font-weight: 600; color: #1a237e; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .search-guide ol { padding-left: 20px; font-size: 13px; color: #444; margin-bottom: 10px; }
+        .search-guide ol li { margin-bottom: 4px; }
+        .search-guide strong { color: #c62828; }
+        .search-links { display: flex; gap: 10px; margin-bottom: 14px; }
+        .search-link-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; background: white; border: 1px solid #c5cae9; border-radius: 8px; text-decoration: none; color: #1a237e; font-size: 13px; font-weight: 500; }
+        .search-link-btn:hover { background: #c5cae9; }
+        .search-upload-btns { display: flex; gap: 10px; }
+        .search-upload-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1px solid #c5cae9; border-radius: 8px; background: white; cursor: pointer; font-size: 13px; color: #1a237e; }
+        .search-upload-btn:hover { background: #e8eaf6; }
+
+        .achievement-wall { background: white; border-radius: 12px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .achievement-header { background: linear-gradient(135deg, #ff6f00, #ff8f00); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+        .achievement-header-left { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; }
+        .refresh-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .refresh-btn:hover { background: rgba(255,255,255,0.35); }
+        .achievement-body { padding: 16px 20px; }
+        .achievement-empty { text-align: center; color: #999; font-size: 14px; padding: 20px 0; }
+        .achievement-group-card { border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 14px; overflow: hidden; }
+        .achievement-group-header { padding: 10px 14px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .achievement-group-body { padding: 12px 14px; background: #fafafa; }
+        .achievement-field { margin-bottom: 10px; }
+        .achievement-field-label { font-size: 12px; color: #888; margin-bottom: 3px; }
+        .achievement-field-value { font-size: 14px; color: #333; line-height: 1.6; }
+        .achievement-images { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .achievement-images img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #e0e0e0; cursor: pointer; }
+        .achievement-time { font-size: 12px; color: #aaa; margin-top: 8px; }
+
+        .section-header { background: #f5f5f5; padding: 12px 20px; font-size: 15px; font-weight: 600; color: #333; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #eee; }
+        .section-body { padding: 16px 20px; }
+
+        .bottom-actions { background: white; border-top: 1px solid #eee; padding: 8px 12px; display: flex; gap: 6px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); flex-wrap: wrap; }
+        .action-btn { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 500; white-space: nowrap; }
+        .action-btn.present { background: linear-gradient(135deg, #ff9800, #f57c00); color: white; }
+        .action-btn.all-present { background: linear-gradient(135deg, #42a5f5, #1e88e5); color: white; }
+        .action-btn.submit { background: linear-gradient(135deg, #66bb6a, #43a047); color: white; }
+        .action-btn.refresh { background: #f5f5f5; color: #666; border: 1px solid #ddd; }
+        .action-btn.clear-group { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; padding: 6px 8px; font-size: 11px; }
+        .action-btn.clear-all { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; padding: 6px 8px; font-size: 11px; }
+        .action-btn.clear-group:hover { background: #ffe0b2; }
+        .action-btn.clear-all:hover { background: #ffcdd2; }
+
+        /* ============ 展示模式 ============ */
+        .pres-overlay { display: none; position: fixed; inset: 0; z-index: 400; background: #111; color: white; flex-direction: column; }
+        .pres-overlay.active { display: flex; }
+
+        /* 顶部控制栏 — 固定可见，大号按钮 */
+        .pres-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px; background: rgba(0,0,0,0.8); flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            min-height: 50px;
+        }
+        .pres-toolbar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .pres-toolbar-right { display: flex; align-items: center; gap: 6px; }
+        .pres-toolbar button {
+            background: rgba(255,255,255,0.18); border: none; color: white;
+            padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
+            white-space: nowrap; font-weight: 500;
+        }
+        .pres-toolbar button:hover { background: rgba(255,255,255,0.3); }
+        .pres-toolbar button.active-tool { background: #7c4dff; }
+        .pres-toolbar select {
+            padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.18);
+            color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 13px;
+            outline: none; cursor: pointer; max-width: 180px;
+        }
+        .pres-toolbar select option { background: #333; color: white; }
+        .pres-counter { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0 4px; }
+
+        /* 画笔工具栏 */
+        .pres-draw-bar {
+            display: none; align-items: center; gap: 6px;
+            padding: 6px 16px; background: rgba(0,0,0,0.6); flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .pres-draw-bar.active { display: flex; }
+        .pres-draw-bar button {
+            background: rgba(255,255,255,0.15); border: none; color: white;
+            padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
+        }
+        .pres-draw-bar button:hover { background: rgba(255,255,255,0.3); }
+        .pres-draw-bar button.active-tool { background: #ff9800; }
+        .pres-draw-bar .color-dot {
+            width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+            cursor: pointer; display: inline-block;
+        }
+        .pres-draw-bar .color-dot.active { border-color: white; transform: scale(1.2); }
+        .pres-draw-bar .size-slider { width: 80px; }
+
+        /* 展示主体 */
+        .pres-main { flex: 1; display: flex; overflow: hidden; }
+        .pres-left { flex: 1; display: flex; flex-direction: column; background: #0a0a0a; position: relative; min-width: 0; }
+        .pres-img-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .pres-img-wrap img { max-width: 95%; max-height: 95%; object-fit: contain; transition: transform 0.2s; }
+        .pres-img-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .pres-img-wrap canvas.drawing { pointer-events: auto; cursor: crosshair; }
+        .pres-img-nav { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 10px; background: rgba(0,0,0,0.5); flex-shrink: 0; }
+        .pres-img-nav button { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 20px; border-radius: 6px; font-size: 18px; cursor: pointer; }
+        .pres-img-nav button:hover { background: rgba(255,255,255,0.3); }
+        .pres-img-counter { font-size: 14px; color: rgba(255,255,255,0.7); min-width: 60px; text-align: center; }
+        .pres-no-img { color: rgba(255,255,255,0.3); font-size: 18px; text-align: center; padding: 40px; }
+        .pres-right { width: 38%; max-width: 420px; min-width: 260px; background: linear-gradient(135deg, #1a237e, #283593); overflow-y: auto; padding: 24px 20px; }
+        .pres-group-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 14px; margin-bottom: 16px; font-size: 18px; font-weight: 700; }
+        .pres-text-field { margin-bottom: 18px; }
+        .pres-text-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px; letter-spacing: 1px; }
+        .pres-text-value { font-size: 16px; line-height: 1.7; color: rgba(255,255,255,0.95); }
+
+        /* Image Viewer */
+        .image-viewer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; flex-direction: column; }
+        .image-viewer-overlay.active { display: flex; }
+        .viewer-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: rgba(0,0,0,0.5); color: white; }
+        .viewer-nav { display: flex; align-items: center; gap: 16px; }
+        .viewer-nav button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 4px 8px; }
+        .viewer-tools { display: flex; align-items: center; gap: 10px; }
+        .viewer-tools button { background: none; border: none; color: white; font-size: 15px; cursor: pointer; padding: 5px 8px; border-radius: 4px; }
+        .viewer-tools button:hover { background: rgba(255,255,255,0.2); }
+        .viewer-body { flex: 1; display: flex; align-items: center; justify-content: center; }
+        .viewer-body img { max-width: 90%; max-height: 90%; object-fit: contain; transition: transform 0.2s; }
+
+        @media (min-width: 768px) { .main-content { max-width: 720px; margin: 0 auto; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="group-select-overlay" id="groupSelectOverlay">
+        <div class="group-select-box">
+            <!-- 返回课堂按钮：如果有已保存的课堂状态就显示 -->
+            <div id="returnClassBar" style="display:none;background:#e8f5e9;border:2px solid #2e7d32;border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:center;">
+                <div style="font-size:14px;color:#2e7d32;font-weight:700;margin-bottom:6px;">📋 检测到你正在上课中</div>
+                <button onclick="resumeClass()" style="background:#2e7d32;color:white;border:none;padding:8px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🏠 返回课堂</button>
+            </div>
+            <h2>🚂 西伯利亚大铁路 · 逻辑推演课</h2>
+            <p>请选择你的小组</p>
+            <div class="group-grid" id="groupGrid"></div>
+            <div class="group-number-row"><label>第</label><input type="number" id="groupNumber" min="1" max="10" value="1"><label>小组</label></div>
+            <button class="group-enter-btn" id="enterBtn" disabled onclick="enterApp()">进入课堂</button>
+        </div>
+    </div>
+    <header class="app-header">
+        <div><div class="header-title">🚂 西伯利亚大铁路 · 逻辑推演课</div><div class="header-subtitle" id="headerSubtitle"></div></div>
+        <div class="header-right"><span style="background:#69f0ae;color:#1a237e;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:700;">📋 上课中</span><button class="switch-group-btn" onclick="switchGroup()">切换小组</button><button class="exit-btn" onclick="closeApp()">✕</button></div>
+    </header>
+    <!-- 浮动返回课堂按钮（始终可见） -->
+    <div id="floatingBackBtn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:9998;flex-direction:column;align-items:center;gap:6px;">
+        <button onclick="scrollToTop()" title="回到顶部" style="width:48px;height:48px;border-radius:50%;background:#1a237e;color:white;border:none;font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">⬆</button>
+    </div>
+    <main class="main-content">
+        <div class="step-indicator"><div class="step-list">
+            <div class="step-item active"><span class="step-number">1</span>找图上传+归纳特征</div>
+            <div class="step-item"><span class="step-number">2</span>对铁路的影响</div>
+            <div class="step-item"><span class="step-number">3</span>搜图验证</div>
+        </div></div>
+        <div id="groupCardContainer"></div>
+        <div class="achievement-wall">
+            <div class="achievement-header"><div class="achievement-header-left">🏆 成果墙</div><button class="refresh-btn" onclick="refreshWall()">🔄 刷新</button></div>
+            <div class="achievement-body" id="achievementBody"><div class="achievement-empty">暂无小组提交成果，点击"刷新"查看</div></div>
+        </div>
+    </main>
+    <div class="bottom-actions">
+        <button class="action-btn all-present" onclick="presentAll()">🌐 全部展示</button>
+        <button class="action-btn submit" onclick="submitResult()">📤 提交成果</button>
+        <button class="action-btn refresh" onclick="refreshWall()">🔄 刷新成果</button>
+        <button class="action-btn clear-group" onclick="clearGroupData()">🗑 清空本组</button>
+        <button class="action-btn clear-all" onclick="clearAllData()">⚠ 清空全部（学生勿点）</button>
+    </div>
+
+    <!-- 展示模式 -->
+    <div class="pres-overlay" id="presOverlay">
+        <div class="pres-toolbar">
+            <div class="pres-toolbar-left">
+                <button onclick="presGroupPrev()">◀</button>
+                <select id="presGroupSelect" onchange="presJumpToGroup(this.value)"></select>
+                <button onclick="presGroupNext()">▶</button>
+                <span class="pres-counter" id="presGroupCounter">1/1</span>
+                <span style="color:rgba(255,255,255,0.3);margin:0 4px;">|</span>
+                <button id="presDrawToggle" onclick="togglePresDraw()">✏️ 画笔</button>
+            </div>
+            <div class="pres-toolbar-right">
+                <button onclick="presZoomIn()">➕</button>
+                <button onclick="presZoomOut()">➖</button>
+                <button onclick="presZoomReset()">1:1</button>
+                <button onclick="closePresentation()" style="background:rgba(200,0,0,0.5);">✕ 退出</button>
+            </div>
+        </div>
+        <div class="pres-draw-bar" id="presDrawBar">
+            <button class="active-tool" data-tool="pen" onclick="setDrawTool('pen')">🖊️ 铅笔</button>
+            <button data-tool="highlight" onclick="setDrawTool('highlight')">💛 荧光笔</button>
+            <button data-tool="eraser" onclick="setDrawTool('eraser')">🧹 橡皮擦</button>
+            <span style="color:rgba(255,255,255,0.4);margin:0 4px;">|</span>
+            <span class="color-dot active" style="background:#ff0000;" onclick="setDrawColor('#ff0000')"></span>
+            <span class="color-dot" style="background:#00ff00;" onclick="setDrawColor('#00ff00')"></span>
+            <span class="color-dot" style="background:#ffff00;" onclick="setDrawColor('#ffff00')"></span>
+            <span class="color-dot" style="background:#00aaff;" onclick="setDrawColor('#00aaff')"></span>
+            <span class="color-dot" style="background:#ffffff;" onclick="setDrawColor('#ffffff')"></span>
+            <span style="color:rgba(255,255,255,0.4);margin:0 4px;">|</span>
+            <input type="range" class="size-slider" min="1" max="20" value="3" oninput="drawSize=+this.value">
+            <button onclick="clearPresDrawing()" style="background:rgba(200,0,0,0.4);">🗑 清除画笔</button>
+        </div>
+        <div class="pres-main">
+            <div class="pres-left">
+                <div class="pres-img-wrap" id="presImgWrap">
+                    <img id="presImage" src="" alt="">
+                    <canvas id="presCanvas"></canvas>
+                </div>
+                <div class="pres-img-nav" id="presImgNav">
+                    <button onclick="presImgPrev()">◀</button>
+                    <span class="pres-img-counter" id="presImgCounter">1 / 1</span>
+                    <button onclick="presImgNext()">▶</button>
+                </div>
+            </div>
+            <div class="pres-right" id="presRight"></div>
+        </div>
+    </div>
+
+    <!-- 图片查看器 -->
+    <div class="image-viewer-overlay" id="imageViewer">
+        <div class="viewer-toolbar">
+            <div class="viewer-nav"><button onclick="prevImage()">◀</button><span id="imageCounter">1 / 1</span><button onclick="nextImage()">▶</button></div>
+            <div class="viewer-tools"><button onclick="zoomIn()">➕</button><button onclick="zoomOut()">➖</button><button onclick="resetZoom()">1:1</button><button onclick="closeViewer()">✕</button></div>
+        </div>
+        <div class="viewer-body"><img id="viewerImage" src="" alt=""></div>
+    </div>
+</div>
+
+<script>
+const GROUPS = {
+    terrain: { id:'terrain', name:'地形组', icon:'🏔️', gradient:'linear-gradient(135deg,#795548,#8d6e63)', color:'#795548', keyword:'西伯利亚 地形',
+        task1:{ title:'从课本图册中找到地形相关图片，拍照上传', featureLabel:'地形特征归纳', featurePH:'' },
+        task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' }
+    },
+    climate: { id:'climate', name:'气候组', icon:'🌡️', gradient:'linear-gradient(135deg,#e65100,#ff6d00)', color:'#e65100', keyword:'西伯利亚 气候 寒冷 冻土',
+        task1:{ title:'从课本图册中找到气候相关图片，拍照上传', featureLabel:'气候特征归纳', featurePH:'' },
+        task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' }
+    },
+    river: { id:'river', name:'河湖组', icon:'🌊', gradient:'linear-gradient(135deg,#1565c0,#1976d2)', color:'#1565c0', keyword:'西伯利亚 河湖 鄂毕河 叶尼塞河 勒拿河',
+        task1:{ title:'从课本图册中找到河湖相关图片，拍照上传', featureLabel:'河湖特征归纳', featurePH:'' },
+        task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' }
+    },
+};
+
+let currentGroup=null, currentGroupNum=1, uploadedImages=[], imageUrls=[];
+let viewerImages=[], viewerIndex=0, zoomLevel=1;
+let serverMode=false, cachedResults={}, sessionResults={};
+let presGroups=[], presGroupIdx=0, presImgIdx=0, presZoom=1;
+let selectedGroup=null;
+// imageUrls[i] 存储已上传到服务器的URL，与 uploadedImages 一一对应
+// uploadedImages[i] 用于本地显示（base64或服务器URL），imageUrls[i] 用于提交给服务器
+// 画笔状态
+let presDrawing=false, drawTool='pen', drawColor='#ff0000', drawSize=3;
+let isDrawing=false, lastX=0, lastY=0;
+
+// ============ 初始化 ============
+window.addEventListener('DOMContentLoaded',()=>{
+    renderGroupSelection();
+    detectServer();
+    // 显示"返回课堂"按钮（如果有已保存的课堂状态）
+    const s=localStorage.getItem('selectedGroup');
+    if(s)try{
+        const d=JSON.parse(s);
+        if(d.group){
+            selectGroup(d.group);
+            document.getElementById('groupNumber').value=d.num||1;
+            // 如果有之前的上课记录，显示返回课堂按钮
+            if(d.entered===true){
+                const bar=document.getElementById('returnClassBar');
+                if(bar)bar.style.display='block';
+            }
+        }
+    }catch(e){}
+    // 始终显示小组选择界面，不自动跳过
+});
+
+// 离开页面时自动保存草稿
+window.addEventListener('beforeunload',()=>{if(currentGroup)saveDraft();});
+// 切换标签页时自动保存
+window.addEventListener('visibilitychange',()=>{if(document.hidden&&currentGroup)saveDraft();});
+async function detectServer(){
+    // 只要不是本地文件打开，就一定连上服务器（公网模式）
+    serverMode = window.location.protocol !== 'file:' && window.location.hostname !== '';
+    try{
+        const r=await fetch('/api/config?t='+Date.now(),{signal:AbortSignal.timeout(3000)});
+        // 服务器有响应就确认连上
+        if(r.ok){ const c=await r.json();serverMode=c.server_mode!==false; }
+    }catch(e){ /* 网络不通时保持判定 */ }
+    if(currentGroup)updateServerStatus();
+}
+
+function updateServerStatus(){
+    const sub=document.getElementById('headerSubtitle');
+    if(!sub)return;
+    const base=`${GROUPS[currentGroup]?.icon||''} ${GROUPS[currentGroup]?.name||''} · 第${currentGroupNum}小组`;
+    if(serverMode){
+        sub.innerHTML=base+` <span style="color:#69f0ae;font-size:11px;">● 公网已连接</span>`;
+    }else{
+        sub.innerHTML=base+` <span style="color:#ff5252;font-size:11px;">○ 等待连接...</span>`;
+    }
+}
+
+// ============ 小组选择 ============
+function renderGroupSelection(){document.getElementById('groupGrid').innerHTML=Object.entries(GROUPS).map(([k,g])=>`<div class="group-select-btn" data-group="${k}" onclick="selectGroup('${k}')"><span class="gs-icon">${g.icon}</span><span class="gs-name">${g.name}</span></div>`).join('');}
+function selectGroup(k){selectedGroup=k;document.querySelectorAll('.group-select-btn').forEach(b=>{b.style.borderColor=b.dataset.group===k?GROUPS[k].color:'#e0e0e0';b.style.background=b.dataset.group===k?GROUPS[k].color+'10':'white';});updateEnterBtn();}
+function updateEnterBtn(){document.getElementById('enterBtn').disabled=!selectedGroup||!document.getElementById('groupNumber').value;}
+document.getElementById('groupNumber').addEventListener('input',updateEnterBtn);
+function enterApp(){if(!selectedGroup)return;currentGroup=selectedGroup;currentGroupNum=parseInt(document.getElementById('groupNumber').value)||1;localStorage.setItem('selectedGroup',JSON.stringify({group:currentGroup,num:currentGroupNum,entered:true}));document.getElementById('groupSelectOverlay').classList.add('hidden');
+    // 隐藏返回课堂提示栏，显示浮动按钮
+    const bar=document.getElementById('returnClassBar');if(bar)bar.style.display='none';
+    const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='flex';
+    // ★ 切换小组时清空图片，防止上一组的图片泄漏到当前组
+    uploadedImages=[];imageUrls=[];
+    renderMainApp();restoreDraft();updateServerStatus();}
+function switchGroup(){document.getElementById('groupSelectOverlay').classList.remove('hidden');const bar=document.getElementById('returnClassBar');if(bar){const s=localStorage.getItem('selectedGroup');if(s)try{const d=JSON.parse(s);if(d.entered===true)bar.style.display='block';}catch(e){}} const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='none';}
+function resumeClass(){const s=localStorage.getItem('selectedGroup');if(!s)return;try{const d=JSON.parse(s);if(d.group){currentGroup=d.group;currentGroupNum=d.num||1;document.getElementById('groupSelectOverlay').classList.add('hidden');const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='flex';renderMainApp();restoreDraft();updateServerStatus();showNotification('✅ 已返回课堂');window.scrollTo({top:0,behavior:'smooth'});}}catch(e){}}
+
+// ============ 渲染主界面 ============
+function renderMainApp(){
+    const g=GROUPS[currentGroup];
+    document.getElementById('headerSubtitle').textContent=`${g.icon} ${g.name} · 第${currentGroupNum}小组`;
+    document.getElementById('groupCardContainer').innerHTML=`
+    <div class="group-card"><div class="group-header" style="background:${g.gradient}"><span class="group-icon">${g.icon}</span><span class="group-name">${g.name} · 第${currentGroupNum}小组</span></div><div class="group-body">
+        <div class="task-section"><div class="task-title"><span class="emoji">📸</span>任务一：${g.task1.title}</div>
+            <div class="upload-area" id="uploadArea" onclick="triggerUpload()"><div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div></div>
+            <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
+            <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button></div>
+        </div>
+        <div class="task-section"><div class="task-title"><span class="emoji">📝</span>根据上传的图片，归纳特征并回答：</div>
+            <div class="answer-area"><div class="answer-label">${g.task1.featureLabel}：</div><textarea class="answer-textarea" id="featureAnswer" placeholder="${g.task1.featurePH}"></textarea></div>
+        </div>
+        <div class="task-section"><div class="task-title"><span class="emoji">🚂</span>任务二：分析该因素对西伯利亚大铁路建设的影响</div>
+            <div class="tip-box"><div class="tip-label">💡 提示：可以分别从俄罗斯<strong>西部</strong>和<strong>东部</strong>两个区域进行分析</div></div>
+            <div class="region-analysis"><div class="region-card west"><div class="region-label">${g.task2.westTitle}</div><textarea class="answer-textarea" id="westAnswer" placeholder="${g.task2.westPH}"></textarea></div><div class="region-card east"><div class="region-label">${g.task2.eastTitle}</div><textarea class="answer-textarea" id="eastAnswer" placeholder="${g.task2.eastPH}"></textarea></div></div>
+            <div class="conclusion-section"><div class="conclusion-label">📋 综合结论</div><textarea class="answer-textarea" id="conclusionAnswer" placeholder="${g.task2.conclusionPH}"></textarea></div>
+        </div>
+        <div class="task-section"><div class="task-title"><span class="emoji">🔍</span>任务三：搜索验证你的结论</div>
+            <div class="task-description">搜索<strong>真实图片</strong>或<strong>地理数据</strong>来验证推论</div>
+            <div class="search-buttons"><button class="search-btn image" onclick="searchBaiduImages()"><span class="btn-icon">🖼️</span>搜图片</button></div>
+            <div class="search-guide"><div class="search-guide-title">💡 搜索图片并上传</div><ol><li>点击上方【搜图片】按钮，自动在新标签页打开必应图片搜索</li><li><strong>长按图片 → 保存图片到相册</strong></li><li>保存完成后<strong style="color:#c62828;font-size:15px;">切换回课堂标签页</strong>，点击下方按钮上传</li></ol>
+                <div style="text-align:center;margin-top:10px;padding:8px;background:#e8f5e9;border-radius:6px;font-size:13px;color:#2e7d32;font-weight:600;">📋 搜图完成后，按浏览器【返回】键即可回到本页面</div>
+                <div style="font-size:13px;color:#666;margin-bottom:10px;">从相册添加搜索到的图片：</div>
+                <div class="search-upload-btns"><button class="search-upload-btn" onclick="openCamera()"><span>📷</span>拍照上传</button><button class="search-upload-btn" onclick="triggerUpload()"><span>🖼️</span>从相册选择</button></div>
+            </div>
+            <div style="margin-top:12px;"></div>
+        </div>
+    </div></div>`;
+    refreshWall(); loadDraft();
+}
+
+// ============ 图片上传 ============
+function triggerUpload(){document.getElementById('fileInput').click();}
+function openCamera(){const i=document.createElement('input');i.type='file';i.accept='image/*';i.capture='environment';i.multiple=true;i.onchange=handleFileUpload;i.click();}
+
+async function handleFileUpload(e){
+    const files=e.target.files;if(!files||!files.length)return;
+    const n=files.length;
+    showNotification(`⏳ 正在上传 ${n} 张图片...`);
+
+    for(const f of files){
+        // 1. 先转base64，用于本地即时显示
+        const b64=await fileToBase64(f);
+        const idx=uploadedImages.length;
+        uploadedImages.push(b64);
+        imageUrls.push(''); // 占位，等待服务器返回
+
+        // 2. 尝试上传到服务器
+        if(serverMode){
+            try{
+                const fd=new FormData();fd.append('image',f);
+                const r=await fetch('/api/upload_image',{method:'POST',body:fd});
+                const d=await r.json();
+                if(d.url){
+                    // 上传成功：imageUrls存服务器URL，uploadedImages用服务器URL（其他设备也能访问）
+                    imageUrls[idx]=d.url;
+                    uploadedImages[idx]=d.url;
+                }
+            }catch(err){
+                console.log('图片上传服务器失败，保留base64:',err);
+            }
+        }
+    }
+
+    updateUploadArea();
+    showNotification(`✅ 已添加 ${n} 张图片到图册！`);
+    e.target.value='';
+}
+
+function fileToBase64(f){return new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f);});}
+function updateUploadArea(){const a=document.getElementById('uploadArea');if(!a)return;if(!uploadedImages.length){a.innerHTML='<div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div>';}else{a.innerHTML='<div class="uploaded-thumbs">'+uploadedImages.map((s,i)=>`<div class="thumb-wrap" style="position:relative;display:inline-block;"><img src="${s}" onclick="event.stopPropagation();openViewer(${i})" onerror="this.src=\'\';this.alt=\'❌图片加载失败\'"><button class="thumb-delete-btn" onclick="event.stopPropagation();deleteImage(${i})" title="删除这张图片">✕</button></div>`).join('')+'</div><div style="font-size:12px;color:#888;margin-top:8px;">已上传 '+uploadedImages.length+' 张图片，点击图片查看，点击 ✕ 删除</div>';}}
+function deleteImage(idx){
+    if(!confirm('确定要删除这张图片吗？'))return;
+    uploadedImages.splice(idx,1);
+    imageUrls.splice(idx,1);
+    updateUploadArea();
+    showNotification('✅ 图片已删除');
+}
+
+// ============ 图片查看器 ============
+function openViewer(idx){viewerImages=[...uploadedImages];viewerIndex=idx||0;zoomLevel=1;document.getElementById('viewerImage').src=viewerImages[viewerIndex];document.getElementById('viewerImage').style.transform='scale(1)';document.getElementById('imageViewer').classList.add('active');updateImageCounter();}
+function closeViewer(){document.getElementById('imageViewer').classList.remove('active');}
+function prevImage(){if(viewerIndex>0){viewerIndex--;document.getElementById('viewerImage').src=viewerImages[viewerIndex];document.getElementById('viewerImage').style.transform='scale(1)';zoomLevel=1;updateImageCounter();}}
+function nextImage(){if(viewerIndex<viewerImages.length-1){viewerIndex++;document.getElementById('viewerImage').src=viewerImages[viewerIndex];document.getElementById('viewerImage').style.transform='scale(1)';zoomLevel=1;updateImageCounter();}}
+function updateImageCounter(){document.getElementById('imageCounter').textContent=`${viewerIndex+1} / ${viewerImages.length}`;}
+function zoomIn(){zoomLevel+=0.2;document.getElementById('viewerImage').style.transform=`scale(${zoomLevel})`;}
+function zoomOut(){if(zoomLevel>0.4){zoomLevel-=0.2;document.getElementById('viewerImage').style.transform=`scale(${zoomLevel})`;}}
+function resetZoom(){zoomLevel=1;document.getElementById('viewerImage').style.transform='scale(1)';}
+document.getElementById('imageViewer').addEventListener('click',function(e){if(e.target===this||e.target.classList.contains('viewer-body'))closeViewer();});
+
+// ============ 搜索图片 ============
+
+function searchBaiduImages(){const g=GROUPS[currentGroup];showNotification('正在新标签页打开必应图片搜索，保存图片后切换回课堂标签页');window.open(`https://cn.bing.com/images/search?q=${encodeURIComponent(g.keyword)}`,'_blank');}
+
+// ============ 清空数据 ============
+async function clearGroupData(){
+    if(!currentGroup)return;
+    const g=GROUPS[currentGroup];
+    if(!confirm(`⚠️ 确定要清空【${g.name}第${currentGroupNum}组】的所有数据吗？\n\n此操作不可撤销，将清除本组已上传的图片和提交的成果。`))return;
+    // 1. 清空本地
+    uploadedImages=[];imageUrls=[];
+    updateUploadArea();
+    sessionResults[currentGroup+'_'+currentGroupNum]=null;
+    delete sessionResults[currentGroup+'_'+currentGroupNum];
+    // 清空草稿
+    localStorage.removeItem('draft_'+currentGroup+'_'+currentGroupNum);
+    // 2. 通知服务器清空本组
+    if(serverMode){
+        try{
+            const r=await fetch('/api/clear_group',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({group_id:currentGroup+'_'+currentGroupNum})
+            });
+            if(r.ok)showNotification('✅ 本组数据已清空');
+        }catch(e){showNotification('⚠️ 本地数据已清空，服务器清空失败');}
+    }else{showNotification('✅ 本组数据已清空');}
+    refreshWall();
+}
+
+async function clearAllData(){
+    if(!confirm('⚠️⚠️ 确定要清空【所有小组】的全部数据吗？\n\n此操作不可撤销，将清除所有组已上传的图片和提交的成果！\n\n建议先确认是否需要备份。'))return;
+    if(!confirm('再次确认：真的要清空所有数据吗？'))return;
+    // 1. 清空本地
+    uploadedImages=[];imageUrls=[];
+    updateUploadArea();
+    sessionResults={};
+    localStorage.removeItem('classResults');
+    // 清空所有草稿
+    for(const k of Object.keys(localStorage)){
+        if(k.startsWith('draft_'))localStorage.removeItem(k);
+    }
+    // 2. 通知服务器清空全部
+    if(serverMode){
+        try{
+            const r=await fetch('/api/clear',{method:'POST'});
+            if(r.ok)showNotification('✅ 所有数据已清空');
+        }catch(e){showNotification('⚠️ 本地数据已清空，服务器清空失败');}
+    }else{showNotification('✅ 所有数据已清空');}
+    refreshWall();
+}
+
+// ============ 成果提交 ============
+function collectData(){
+    const g=GROUPS[currentGroup];
+    // 关键：images字段优先使用服务器URL（其他设备可访问），降级使用base64
+    const imagesForSubmit=uploadedImages.map((img,i)=>{
+        if(imageUrls[i])return imageUrls[i]; // 有服务器URL就用URL
+        if(img.startsWith('/uploads/')||img.startsWith('http'))return img; // 已经是URL
+        return img; // 降级：用base64（服务器端会自动转换为文件）
+    }).filter(img=>img&&img.length>0); // ★ 过滤掉空图片，防止未上传时混入脏数据
+    return{
+        group_id:`${currentGroup}_${currentGroupNum}`,
+        group_key:currentGroup,
+        group_name:g.name,
+        group_icon:g.icon,
+        group_num:currentGroupNum,
+        feature:document.getElementById('featureAnswer')?.value||'',
+        west:document.getElementById('westAnswer')?.value||'',
+        east:document.getElementById('eastAnswer')?.value||'',
+        conclusion:document.getElementById('conclusionAnswer')?.value||'',
+        images:imagesForSubmit
+    };
+}
+
+async function submitResult(){
+    const data=collectData();
+    const has=data.feature||data.west||data.east||data.conclusion||data.images.length>0;
+    if(!has){showNotification('请先完成任务内容再提交');return;}
+    if(!confirm('确认提交成果？提交后其他同学刷新即可看到'))return;
+
+    showNotification('⏳ 正在提交成果...');
+
+    // 1. 本地内存存储（100%可靠）
+    const t=new Date().toLocaleString('zh-CN');
+    const full={...data,submit_time:t};
+    sessionResults[data.group_id]=full;
+
+    // 2. localStorage降级存储
+    try{
+        const a=JSON.parse(localStorage.getItem('classResults')||'{}');
+        a[data.group_id]=full;
+        localStorage.setItem('classResults',JSON.stringify(a));
+    }catch(e){}
+
+    // 3. 提交到服务器（最关键：跨设备共享）
+    let serverOk=false;
+    if(serverMode){
+        try{
+            const r=await fetch('/api/submit',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify(data)
+            });
+            const d=await r.json();
+            if(d.status==='ok'){
+                serverOk=true;
+                // 提交成功后，把服务器返回的图片URL更新到本地
+                if(d.image_urls){
+                    for(let i=0;i<d.image_urls.length&&i<uploadedImages.length;i++){
+                        if(d.image_urls[i]){
+                            imageUrls[i]=d.image_urls[i];
+                            uploadedImages[i]=d.image_urls[i];
+                        }
+                    }
+                }
+            }else{
+                console.log('服务器返回错误:',d.error);
+            }
+        }catch(err){
+            console.log('提交到服务器失败:',err);
+        }
+    }
+
+    if(serverOk){
+        showNotification('✅ 成果已提交到服务器！其他同学刷新即可看到');
+    }else if(serverMode){
+        showNotification('⚠️ 服务器提交失败，成果仅本机可见');
+    }else{
+        showNotification('✅ 成果已保存（未连接服务器，仅本机可见）');
+    }
+
+    saveDraft();
+    await refreshWall();
+}
+
+// ============ 成果墙 ============
+async function refreshWall(){
+    const body=document.getElementById('achievementBody');
+    // 显示正在加载
+    if(body)body.innerHTML='<div class="achievement-empty">⏳ 正在刷新成果...</div>';
+
+    let results={};
+    let serverReachable=false;
+
+    // 1. 优先从服务器获取（跨设备共享的关键）
+    if(serverMode){
+        try{
+            const r=await fetch('/api/results',{signal:AbortSignal.timeout(5000)});
+            if(r.ok){
+                results=await r.json();
+                serverReachable=true;
+            }
+        }catch(e){
+            console.log('获取服务器成果失败:',e);
+        }
+    }
+
+    // 2. 合并本地内存中的成果
+    for(const k in sessionResults)results[k]=sessionResults[k];
+
+    // 3. 合并localStorage中的成果
+    try{
+        const l=JSON.parse(localStorage.getItem('classResults')||'{}');
+        for(const k in l)if(!results[k])results[k]=l[k];
+    }catch(e){}
+
+    cachedResults=results;
+    renderAchievementWall(results);
+
+    // 更新服务器状态提示
+    if(!serverReachable && serverMode){
+        showNotification('⚠️ 无法连接服务器，显示的是本地缓存成果');
+        serverMode=false; // 标记为不可用
+        updateServerStatus();
+    }
+}
+
+// 自动刷新：每10秒从服务器拉取最新成果（服务器模式）
+setInterval(()=>{if(currentGroup&&serverMode)refreshWall();},10000);
+
+function renderAchievementWall(results){
+    const body=document.getElementById('achievementBody');const entries=Object.entries(results);
+    if(!entries.length){body.innerHTML='<div class="achievement-empty">暂无小组提交成果，点击"🔄 刷新"查看</div>';return;}
+    const order=['terrain','climate','river'];
+    entries.sort((a,b)=>order.indexOf(a[1].group_key||'')-order.indexOf(b[1].group_key||''));
+    body.innerHTML=entries.map(([id,r])=>{
+        const g=GROUPS[r.group_key]||GROUPS.terrain;
+        const imgs=(r.images&&r.images.length)?`<div class="achievement-images">${r.images.filter(img=>img&&img.length>0).map((img,i)=>{
+            // 处理不同类型的图片路径
+            let src=img;
+            if(img.startsWith('/uploads/')){
+                // 服务器路径，需要加上origin
+                src=window.location.origin+img;
+            }
+            return`<img src="${src}" onclick="openViewerFromWall('${id}',${i})" onerror="this.onerror=null;this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22><rect fill=%22%23eee%22 width=%2280%22 height=%2280%22/><text x=%2240%22 y=%2245%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22>加载失败</text></svg>'">`;
+        }).join('')}</div>`:'';
+        return`<div class="achievement-group-card"><div class="achievement-group-header" style="background:${g.color}15;color:${g.color};">${g.icon} ${r.group_name||g.name} · 第${r.group_num||'?'}小组</div><div class="achievement-group-body">
+            ${r.feature?`<div class="achievement-field"><div class="achievement-field-label">${g.task1?.featureLabel||'特征归纳'}</div><div class="achievement-field-value">${r.feature}</div></div>`:''}
+            ${r.west?`<div class="achievement-field"><div class="achievement-field-label">🔹 西部分析</div><div class="achievement-field-value">${r.west}</div></div>`:''}
+            ${r.east?`<div class="achievement-field"><div class="achievement-field-label">🔸 东部分析</div><div class="achievement-field-value">${r.east}</div></div>`:''}
+            ${r.conclusion?`<div class="achievement-field"><div class="achievement-field-label">📋 综合结论</div><div class="achievement-field-value">${r.conclusion}</div></div>`:''}
+            ${imgs}${r.submit_time?`<div class="achievement-time">提交时间：${r.submit_time}</div>`:''}</div></div>`;
+    }).join('');
+}
+function openViewerFromWall(gid,idx){let r=cachedResults[gid];if(!r)try{r=JSON.parse(localStorage.getItem('classResults')||'{}')[gid];}catch(e){}if(r&&r.images&&r.images.length>idx){viewerImages=r.images;viewerIndex=idx;zoomLevel=1;document.getElementById('viewerImage').src=viewerImages[viewerIndex];document.getElementById('viewerImage').style.transform='scale(1)';document.getElementById('imageViewer').classList.add('active');updateImageCounter();}}
+
+// ============ 展示模式 ============
+function presentGroup(){const data=collectData();const g=GROUPS[currentGroup];if(!(data.feature||data.west||data.east||data.conclusion||data.images.length>0)){showNotification('请先完成任务内容再展示');return;}presGroups=[{...data,group_key:currentGroup,group_icon:g.icon,group_name:g.name,group_num:currentGroupNum,color:g.color}];presGroupIdx=0;enterPresentation();}
+async function presentAll(){
+    let results={};if(serverMode){try{const r=await fetch('/api/results');results=await r.json();}catch(e){}}
+    for(const k in sessionResults)results[k]=sessionResults[k];
+    try{const l=JSON.parse(localStorage.getItem('classResults')||'{}');for(const k in l)if(!results[k])results[k]=l[k];}catch(e){}
+    const vals=Object.values(results);const g=GROUPS[currentGroup];
+    presGroups=vals.length?vals.map(r=>{const g2=GROUPS[r.group_key]||GROUPS.terrain;return{...r,group_key:r.group_key,group_icon:g2.icon,group_name:r.group_name||g2.name,group_num:r.group_num,color:g2.color};}):[{...collectData(),group_key:currentGroup,group_icon:g.icon,group_name:g.name,group_num:currentGroupNum,color:g.color}];
+    presGroupIdx=0;enterPresentation();
+}
+
+function enterPresentation(){
+    presImgIdx=0;presZoom=1;presDrawing=false;
+    document.getElementById('presOverlay').classList.add('active');
+    // 填充组选择下拉框
+    const sel=document.getElementById('presGroupSelect');
+    sel.innerHTML=presGroups.map((g,i)=>`<option value="${i}"${i===presGroupIdx?' selected':''}>${g.group_icon||''} ${g.group_name} · 第${g.group_num}组</option>`).join('');
+    renderPresSlide();
+    try{document.documentElement.requestFullscreen?.();}catch(e){}
+}
+
+function renderPresSlide(){
+    const g=presGroups[presGroupIdx];if(!g)return;
+    // ★ 先清空上一次的图片，防止切换小组时闪现旧图
+    const imgEl=document.getElementById('presImage');
+    if(imgEl){imgEl.src='';imgEl.style.display='none';}
+    const go=GROUPS[g.group_key]||GROUPS.terrain;
+    // 右侧文字
+    document.getElementById('presRight').innerHTML=`
+        <div class="pres-group-badge">${g.group_icon||''} ${g.group_name} · 第${g.group_num}小组</div>
+        ${g.feature?`<div class="pres-text-field"><div class="pres-text-label">${go.task1?.featureLabel||'特征归纳'}</div><div class="pres-text-value">${g.feature}</div></div>`:''}
+        ${g.west?`<div class="pres-text-field"><div class="pres-text-label">🔹 西部分析</div><div class="pres-text-value">${g.west}</div></div>`:''}
+        ${g.east?`<div class="pres-text-field"><div class="pres-text-label">🔸 东部分析</div><div class="pres-text-value">${g.east}</div></div>`:''}
+        ${g.conclusion?`<div class="pres-text-field"><div class="pres-text-label">📋 综合结论</div><div class="pres-text-value">${g.conclusion}</div></div>`:''}`;
+    // 左侧图片
+    renderPresImage();
+    // 更新控件
+    document.getElementById('presGroupCounter').textContent=`${presGroupIdx+1}/${presGroups.length}`;
+    document.getElementById('presGroupSelect').value=presGroupIdx;
+}
+
+function renderPresImage(){
+    const g=presGroups[presGroupIdx];
+    // ★ 过滤出有效的图片（非空、非null）
+    const allImgs=g.images||[];
+    const imgs=allImgs.filter(img=>img&&img.length>0);
+    const imgEl=document.getElementById('presImage');
+    const navEl=document.getElementById('presImgNav');
+    const canvas=document.getElementById('presCanvas');
+    const wrap=document.getElementById('presImgWrap');
+    if(!imgs.length){
+        imgEl.src='';imgEl.style.display='none';navEl.style.display='none';
+        if(canvas){canvas.width=0;canvas.height=0;const ctx=canvas.getContext('2d');if(ctx)ctx.clearRect(0,0,canvas.width,canvas.height);}
+        if(wrap)wrap.innerHTML='<div class="pres-no-img">暂无图片</div><img id="presImage" src="" style="display:none"><canvas id="presCanvas"></canvas>';
+        presDrawing=false;document.getElementById('presDrawBar').classList.remove('active');document.getElementById('presDrawToggle').classList.remove('active-tool');
+        return;
+    }
+    if(presImgIdx>=imgs.length)presImgIdx=imgs.length-1;if(presImgIdx<0)presImgIdx=0;
+    imgEl.src=imgs[presImgIdx];imgEl.style.display='block';imgEl.style.transform=`scale(${presZoom})`;
+    navEl.style.display='flex';
+    document.getElementById('presImgCounter').textContent=`${presImgIdx+1} / ${imgs.length}`;
+    // 重置画布
+    initPresCanvas();
+}
+
+function initPresCanvas(){
+    const wrap=document.getElementById('presImgWrap');
+    const canvas=document.getElementById('presCanvas');
+    if(!canvas)return;
+    // 保留画笔激活状态，不让切换图片把画笔清掉
+    const hadDrawing=canvas.classList.contains('drawing');
+    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
+    if(hadDrawing)canvas.classList.add('drawing');
+    const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+// ============ 展示画笔功能 ============
+// 绑定/重建 Canvas 画笔事件（每次 Canvas 被重建后都要调用）
+function bindPresCanvasEvents(){
+    const canvas=document.getElementById('presCanvas');
+    if(!canvas||canvas._listenersBound)return; // 避免重复绑定
+    canvas._listenersBound=true;
+
+    function getPos(e){
+        const r=canvas.getBoundingClientRect();
+        const t=e.touches?e.touches[0]:e;
+        return{x:t.clientX-r.left,y:t.clientY-r.top};
+    }
+    function startDraw(e){if(!presDrawing)return;isDrawing=true;const p=getPos(e);lastX=p.x;lastY=p.y;e.preventDefault();}
+    function draw(e){
+        if(!isDrawing||!presDrawing)return;e.preventDefault();
+        const p=getPos(e);const ctx=canvas.getContext('2d');
+        ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(p.x,p.y);
+        if(drawTool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=drawSize*4;}
+        else if(drawTool==='highlight'){ctx.globalCompositeOperation='source-over';ctx.strokeStyle=drawColor+'80';ctx.lineWidth=drawSize*4;}
+        else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=drawColor;ctx.lineWidth=drawSize;}
+        ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+        lastX=p.x;lastY=p.y;
+    }
+    function endDraw(){isDrawing=false;const ctx=canvas.getContext('2d');ctx.globalCompositeOperation='source-over';}
+
+    canvas.addEventListener('mousedown',startDraw);
+    canvas.addEventListener('mousemove',draw);
+    canvas.addEventListener('mouseup',endDraw);
+    canvas.addEventListener('mouseleave',endDraw);
+    canvas.addEventListener('touchstart',startDraw,{passive:false});
+    canvas.addEventListener('touchmove',draw,{passive:false});
+    canvas.addEventListener('touchend',endDraw);
+}
+
+function togglePresDraw(){
+    presDrawing=!presDrawing;
+    const canvas=document.getElementById('presCanvas');
+    const bar=document.getElementById('presDrawBar');
+    const btn=document.getElementById('presDrawToggle');
+    if(presDrawing){
+        initPresCanvas();          // 先初始化画布（会清掉 drawing 类，没关系）
+        canvas.classList.add('drawing');   // 再加回来
+        bar.classList.add('active');btn.classList.add('active-tool');
+        bindPresCanvasEvents(); // 绑定/重建画笔事件
+    }else{
+        canvas.classList.remove('drawing');bar.classList.remove('active');btn.classList.remove('active-tool');
+    }
+}
+
+function setDrawTool(tool){drawTool=tool;document.querySelectorAll('.pres-draw-bar button[data-tool]').forEach(b=>{b.classList.toggle('active-tool',b.dataset.tool===tool);});}
+function setDrawColor(c){drawColor=c;document.querySelectorAll('.pres-draw-bar .color-dot').forEach(d=>{d.classList.toggle('active',d.style.background===c);});}
+function clearPresDrawing(){const canvas=document.getElementById('presCanvas');if(!canvas)return;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);}
+
+// 展示导航
+function presImgPrev(){const g=presGroups[presGroupIdx];if(!g||!g.images||!g.images.length)return;if(presImgIdx>0){presImgIdx--;presZoom=1;renderPresImage();}}
+function presImgNext(){const g=presGroups[presGroupIdx];if(!g||!g.images||!g.images.length)return;if(presImgIdx<g.images.length-1){presImgIdx++;presZoom=1;renderPresImage();}}
+function presZoomIn(){presZoom+=0.2;const img=document.getElementById('presImage');if(img)img.style.transform=`scale(${presZoom})`;}
+function presZoomOut(){if(presZoom>0.4){presZoom-=0.2;const img=document.getElementById('presImage');if(img)img.style.transform=`scale(${presZoom})`;}}
+function presZoomReset(){presZoom=1;const img=document.getElementById('presImage');if(img)img.style.transform='scale(1)';}
+function presGroupPrev(){if(presGroupIdx>0){presGroupIdx--;presImgIdx=0;presZoom=1;renderPresSlide();}}
+function presGroupNext(){if(presGroupIdx<presGroups.length-1){presGroupIdx++;presImgIdx=0;presZoom=1;renderPresSlide();}}
+function presJumpToGroup(idx){idx=parseInt(idx);if(idx>=0&&idx<presGroups.length){presGroupIdx=idx;presImgIdx=0;presZoom=1;renderPresSlide();}}
+function closePresentation(){document.getElementById('presOverlay').classList.remove('active');presDrawing=false;try{document.exitFullscreen?.();}catch(e){}}
+
+// ============ 草稿 ============
+function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
+function saveDraft(){if(!currentGroup)return;try{const d=collectData();d.imageUrls=imageUrls.slice();localStorage.setItem(`draft_${currentGroup}_${currentGroupNum}`,JSON.stringify(d));}catch(e){}}
+function loadDraft(){try{const data=JSON.parse(localStorage.getItem(`draft_${currentGroup}_${currentGroupNum}`)||'null');if(!data)return false;if(data.feature)document.getElementById('featureAnswer').value=data.feature;if(data.west)document.getElementById('westAnswer').value=data.west;if(data.east)document.getElementById('eastAnswer').value=data.east;if(data.conclusion)document.getElementById('conclusionAnswer').value=data.conclusion;if(data.images&&data.images.length){uploadedImages=data.images;updateUploadArea();}if(data.imageUrls&&data.imageUrls.length){imageUrls=data.imageUrls;}return true;}catch(e){return false;}}
+function restoreDraft(){const ok=loadDraft();if(ok)showNotification('✅ 已恢复上次编辑的内容');}
+setInterval(()=>{if(currentGroup)saveDraft();},30000);
+
+// ============ 工具 ============
+function closeApp(){if(!confirm('确定要退出吗？'))return;const s=localStorage.getItem('selectedGroup');if(s)try{const d=JSON.parse(s);d.entered=false;localStorage.setItem('selectedGroup',JSON.stringify(d));}catch(e){}document.getElementById('groupSelectOverlay').classList.remove('hidden');const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='none';showNotification('已退出课堂');}
+function showNotification(msg){const o=document.querySelector('.ntoast');if(o)o.remove();const t=document.createElement('div');t.className='ntoast';t.textContent=msg;t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 24px;border-radius:24px;font-size:14px;z-index:1000;max-width:90%;text-align:center;animation:fadeIn 0.3s ease-out;';document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+</script>
+</body>
+</html>
