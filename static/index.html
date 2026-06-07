@@ -213,16 +213,17 @@
         .pres-img-wrap img { max-width: 95%; max-height: 95%; object-fit: contain; transition: transform 0.2s; }
         .pres-img-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .pres-img-wrap canvas.drawing { pointer-events: auto; cursor: crosshair; }
-        .pres-img-nav { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 10px; background: rgba(0,0,0,0.5); flex-shrink: 0; }
-        .pres-img-nav button { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 20px; border-radius: 6px; font-size: 18px; cursor: pointer; }
+        .pres-img-nav { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px; background: rgba(0,0,0,0.5); flex-shrink: 0; flex-wrap: wrap; }
+        .pres-img-nav button { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 16px; cursor: pointer; }
         .pres-img-nav button:hover { background: rgba(255,255,255,0.3); }
+        .pres-img-nav .pres-zoom-btn { font-size: 14px; padding: 6px 12px; }
         .pres-img-counter { font-size: 14px; color: rgba(255,255,255,0.7); min-width: 60px; text-align: center; }
         .pres-no-img { color: rgba(255,255,255,0.3); font-size: 18px; text-align: center; padding: 40px; }
         .pres-right { width: 38%; max-width: 420px; min-width: 260px; background: linear-gradient(135deg, #1a237e, #283593); overflow-y: auto; padding: 24px 20px; }
         .pres-group-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 14px; margin-bottom: 16px; font-size: 18px; font-weight: 700; }
         .pres-text-field { margin-bottom: 18px; }
-        .pres-text-label { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 4px; letter-spacing: 1px; }
-        .pres-text-value { font-size: 16px; line-height: 1.7; color: rgba(255,255,255,0.95); }
+        .pres-text-label { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 6px; letter-spacing: 1.5px; font-weight: 600; }
+        .pres-text-value { font-size: 22px; line-height: 1.8; color: rgba(255,255,255,0.98); font-weight: 500; }
 
         /* Image Viewer */
         .image-viewer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; flex-direction: column; }
@@ -353,6 +354,10 @@
                     <button onclick="presImgPrev()">◀</button>
                     <span class="pres-img-counter" id="presImgCounter">1 / 1</span>
                     <button onclick="presImgNext()">▶</button>
+                    <span style="color:rgba(255,255,255,0.3);margin:0 8px;">|</span>
+                    <button class="pres-zoom-btn" onclick="presZoomIn()" title="放大图片">🔍➕</button>
+                    <button class="pres-zoom-btn" onclick="presZoomOut()" title="缩小图片">🔍➖</button>
+                    <button class="pres-zoom-btn" onclick="presZoomReset()" title="还原大小">1:1</button>
                 </div>
             </div>
             <div class="pres-right" id="presRight"></div>
@@ -906,6 +911,7 @@ function enterPresentation(){
     const sel=document.getElementById('presGroupSelect');
     sel.innerHTML=presGroups.map((g,i)=>`<option value="${i}"${i===presGroupIdx?' selected':''}>${g.group_icon||''} ${g.group_name} · 第${g.group_num}组</option>`).join('');
     renderPresSlide();
+    bindPresWheel();
     try{document.documentElement.requestFullscreen?.();}catch(e){}
 }
 
@@ -1020,9 +1026,24 @@ function clearPresDrawing(){const canvas=document.getElementById('presCanvas');i
 // 展示导航
 function presImgPrev(){const g=presGroups[presGroupIdx];if(!g||!g.images||!g.images.length)return;if(presImgIdx>0){presImgIdx--;presZoom=1;renderPresImage();}}
 function presImgNext(){const g=presGroups[presGroupIdx];if(!g||!g.images||!g.images.length)return;if(presImgIdx<g.images.length-1){presImgIdx++;presZoom=1;renderPresImage();}}
-function presZoomIn(){presZoom+=0.2;const img=document.getElementById('presImage');if(img)img.style.transform=`scale(${presZoom})`;}
-function presZoomOut(){if(presZoom>0.4){presZoom-=0.2;const img=document.getElementById('presImage');if(img)img.style.transform=`scale(${presZoom})`;}}
+function presZoomIn(){presZoom+=0.25;if(presZoom>5)presZoom=5;const img=document.getElementById('presImage');if(img)img.style.transform=`scale(${presZoom})`;}
+function presZoomOut(){if(presZoom>0.25){presZoom-=0.25;const img=document.getElementById('presImage');if(img)img.style.transform=`scale(${presZoom})`;}}
 function presZoomReset(){presZoom=1;const img=document.getElementById('presImage');if(img)img.style.transform='scale(1)';}
+// 鼠标滚轮缩放
+function presWheelZoom(e){
+    e.preventDefault();
+    const delta=e.deltaY>0?-0.15:0.15;
+    presZoom=Math.max(0.25,Math.min(5,presZoom+delta));
+    const img=document.getElementById('presImage');
+    if(img)img.style.transform=`scale(${presZoom})`;
+}
+window._presWheelBound=false;
+function bindPresWheel(){
+    if(window._presWheelBound)return;
+    window._presWheelBound=true;
+    const wrap=document.getElementById('presImgWrap');
+    if(wrap)wrap.addEventListener('wheel',presWheelZoom,{passive:false});
+}
 function presGroupPrev(){if(presGroupIdx>0){presGroupIdx--;presImgIdx=0;presZoom=1;renderPresSlide();}}
 function presGroupNext(){if(presGroupIdx<presGroups.length-1){presGroupIdx++;presImgIdx=0;presZoom=1;renderPresSlide();}}
 function presJumpToGroup(idx){idx=parseInt(idx);if(idx>=0&&idx<presGroups.length){presGroupIdx=idx;presImgIdx=0;presZoom=1;renderPresSlide();}}
