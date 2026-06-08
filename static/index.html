@@ -396,7 +396,7 @@
 
 <script>
 const GROUPS = {
-    terrain: { id:'terrain', name:'地形组', icon:'🏔️', gradient:'linear-gradient(135deg,#795548,#8d6e63)', color:'#795548', keyword:'西伯利亚 地形',
+    terrain: { id:'terrain', name:'地形组', icon:'🏔️', gradient:'linear-gradient(135deg,#795548,#8d6e63)', color:'#795548', keyword:'地形 地貌 剖面图',
         task1:{ title:'从课本图册中找到地形相关图片，拍照上传', featureLabel:'地形特征归纳', featurePH:'' },
         task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' },
         analysisGuide:{ cls:'terrain', title:'🏔️ 分析地形特征的一般方法', steps:[
@@ -406,7 +406,7 @@ const GROUPS = {
             '最后分析<strong>地势起伏的大小</strong>（起伏大/小？）'
         ]}
     },
-    climate: { id:'climate', name:'气候组', icon:'🌡️', gradient:'linear-gradient(135deg,#e65100,#ff6d00)', color:'#e65100', keyword:'西伯利亚 气候 寒冷 冻土',
+    climate: { id:'climate', name:'气候组', icon:'🌡️', gradient:'linear-gradient(135deg,#e65100,#ff6d00)', color:'#e65100', keyword:'气候 气温 降水 分布图',
         task1:{ title:'从课本图册中找到气候相关图片，拍照上传', featureLabel:'气候特征归纳', featurePH:'' },
         task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' },
         analysisGuide:{ cls:'climate', title:'🌡️ 分析气候特征的一般方法', steps:[
@@ -416,7 +416,7 @@ const GROUPS = {
             '总体概括区域气候<strong>主要特征</strong>——寒冷还是温暖？干燥还是湿润？'
         ]}
     },
-    river: { id:'river', name:'河湖组', icon:'🌊', gradient:'linear-gradient(135deg,#1565c0,#1976d2)', color:'#1565c0', keyword:'西伯利亚 河湖 鄂毕河 叶尼塞河 勒拿河',
+    river: { id:'river', name:'河湖组', icon:'🌊', gradient:'linear-gradient(135deg,#1565c0,#1976d2)', color:'#1565c0', keyword:'河湖 鄂毕河 叶尼塞河 勒拿河',
         task1:{ title:'从课本图册中找到河湖相关图片，拍照上传', featureLabel:'河湖特征归纳', featurePH:'' },
         task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' },
         analysisGuide:{ cls:'river', title:'🌊 分析河湖特征的一般方法', steps:[
@@ -441,7 +441,7 @@ let presDrawing=false, drawTool='pen', drawColor='#ff0000', drawSize=3;
 let isDrawing=false, lastX=0, lastY=0;
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240608B';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240608C';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
