@@ -242,15 +242,16 @@
         .il-header h3 { font-size: 17px; color: #1a237e; display: flex; align-items: center; gap: 8px; }
         .il-close { background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 4px 8px; }
         .il-close:hover { color: #333; }
-        .il-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; overflow-y: auto; flex: 1; }
-        @media (min-width: 500px) { .il-grid { grid-template-columns: repeat(4, 1fr); } }
+        .il-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 16px; overflow-y: auto; flex: 1; }
+        @media (min-width: 500px) { .il-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 700px) { .il-grid { grid-template-columns: repeat(4, 1fr); } }
         .il-item { border: 2px solid #e0e0e0; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; position: relative; background: #fafafa; }
         .il-item:hover { border-color: #90caf9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .il-item.selected { border-color: #1a237e; box-shadow: 0 0 0 3px rgba(26,35,126,0.2); }
-        .il-item img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+        .il-item img { width: 100%; max-height: 110px; object-fit: cover; display: block; }
         .il-item .il-check { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; background: #1a237e; color: white; display: none; align-items: center; justify-content: center; font-size: 14px; }
         .il-item.selected .il-check { display: flex; }
-        .il-item .il-name { font-size: 11px; color: #666; padding: 6px 8px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .il-item .il-name { font-size: 13px; color: #333; padding: 6px 8px; text-align: center; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .il-footer { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #eee; flex-shrink: 0; }
         .il-footer button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
         .il-btn-cancel { background: #f5f5f5; color: #666; }
@@ -441,7 +442,7 @@ let presDrawing=false, drawTool='pen', drawColor='#ff0000', drawSize=3;
 let isDrawing=false, lastX=0, lastY=0;
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240608C';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240608D';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
