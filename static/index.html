@@ -567,6 +567,7 @@ let viewerImages=[], viewerIndex=0, zoomLevel=1;
 let serverMode=false, cachedResults={}, sessionResults={};
 let presGroups=[], presGroupIdx=0, presImgIdx=0, presZoom=1;
 let presViewingLibImg=false; let cachedLibraryImages=null;
+let libraryImages=[], selectedLibraryIdx=[];
 let selectedGroup=null;
 // imageUrls[i] 存储已上传到服务器的URL，与 uploadedImages 一一对应
 // uploadedImages[i] 用于本地显示（base64或服务器URL），imageUrls[i] 用于提交给服务器
@@ -900,7 +901,7 @@ function collectWorksheetData(gkey){
 }
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240609K';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240609L';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
@@ -1084,7 +1085,6 @@ document.getElementById('imageViewer').addEventListener('click',function(e){if(e
 function searchImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();localStorage.setItem('_bingReturn','1');localStorage.setItem('_bingReturnTime',Date.now().toString());showNotification('🔍 正在新标签页打开Bing图片搜索...');window.open(`https://www.bing.com/images/search?q=${encodeURIComponent(g.keyword)}&setlang=zh-CN`,'_blank');}
 
 // ============ 图片库 ============
-let libraryImages=[], selectedLibraryIdx=[];
 
 function openImageLibrary(readOnly){
     // 记录是否只读模式（教师从展示模式查看图片库）
@@ -1736,8 +1736,8 @@ setInterval(()=>{if(currentGroup)saveDraft();},30000);
 // ============ 工具 ============
 function closeApp(){if(!confirm('确定要退出吗？'))return;const s=localStorage.getItem('selectedGroup');if(s)try{const d=JSON.parse(s);d.entered=false;localStorage.setItem('selectedGroup',JSON.stringify(d));}catch(e){}document.getElementById('groupSelectOverlay').classList.remove('hidden');const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='none';showNotification('已退出课堂');}
 function showNotification(msg){const o=document.querySelector('.ntoast');if(o)o.remove();const t=document.createElement('div');t.className='ntoast';t.textContent=msg;t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 24px;border-radius:24px;font-size:14px;z-index:1000;max-width:90%;text-align:center;animation:fadeIn 0.3s ease-out;';document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
-// 预加载图片库列表（页面加载后 2 秒开始，不阻塞 UI）
-// 图片库是静态文件，直接嵌入文件名列表，不需要服务器 API
+// ★ 图片库完全离线化：内置文件名列表，零服务器依赖
+// 图片直接通过 Flask 静态文件夹提供
 const BUILTIN_IMAGE_LIB = [
   "俄罗斯1月平均气温.jpg",
   "俄罗斯7月平均气温.jpg",
@@ -1756,9 +1756,8 @@ const BUILTIN_IMAGE_LIB = [
 cachedLibraryImages = BUILTIN_IMAGE_LIB.map(function(name){
     return { name: name.replace('.jpg',''), url: '/image_lib/' + name };
 });
-setTimeout(function(){
-    if(libraryImages.length === 0){ libraryImages = cachedLibraryImages; }
-}, 2000);
+// 同时直接给 libraryImages 赋值，确保打开图片库时立即可用
+libraryImages = cachedLibraryImages;
 </script>
 </body>
 </html>
