@@ -71,10 +71,17 @@
         .uploaded-thumbs img { height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid #c5cae9; cursor: pointer; }
         .thumb-delete-btn { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; background: #ff5252; color: white; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; }
         .thumb-delete-btn:hover { background: #d32f2f; transform: scale(1.15); }
-        .upload-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .upload-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; border: 1px solid #c5cae9; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; color: #1a237e; }
-        .upload-btn:hover { background: #e8eaf6; }
-        .upload-btn .btn-icon { font-size: 18px; }
+        .upload-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .upload-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 14px 8px; border: 2px solid; border-radius: 14px; background: white; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.25s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .upload-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .upload-btn:active { transform: translateY(0); }
+        .upload-btn .btn-icon { font-size: 26px; margin-bottom: 2px; }
+        .upload-btn.camera { border-color: #4caf50; color: #2e7d32; background: linear-gradient(135deg,#ffffff,#e8f5e9); }
+        .upload-btn.camera:hover { background: linear-gradient(135deg,#e8f5e9,#c8e6c9); }
+        .upload-btn.album { border-color: #42a5f5; color: #1565c0; background: linear-gradient(135deg,#ffffff,#e3f2fd); }
+        .upload-btn.album:hover { background: linear-gradient(135deg,#e3f2fd,#bbdefb); }
+        .upload-btn.lib { border-color: #ab47bc; color: #6a1b9a; background: linear-gradient(135deg,#ffffff,#f3e5f5); }
+        .upload-btn.lib:hover { background: linear-gradient(135deg,#f3e5f5,#e1bee7); }
 
         .answer-area { background: #fafafa; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
         .answer-label { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; }
@@ -473,15 +480,15 @@
 const GROUPS = {
     terrain: { id:'terrain', name:'地形组', icon:'🏔️', gradient:'linear-gradient(135deg,#795548,#8d6e63)', color:'#795548', keyword:'地形 地貌 剖面图',
         task1:{ title:'从课本图册中找到地形相关图片，拍照上传', featureLabel:'地形特征归纳', featurePH:'' },
-        task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' }
+        task2:{ westTitle:'🏔️ 欧洲部分（西）地形难度', westPH:'提示：从地势起伏、地形类型等角度分析…', eastTitle:'🏔️ 亚洲部分（东）地形难度', eastPH:'提示：从地势起伏、地形类型等角度分析…', conclusionPH:'综合比较欧洲部分和亚洲部分修建铁路的地形难度差异' }
     },
     climate: { id:'climate', name:'气候组', icon:'🌡️', gradient:'linear-gradient(135deg,#e65100,#ff6d00)', color:'#e65100', keyword:'气候 气温 降水 分布图',
         task1:{ title:'从课本图册中找到气候相关图片，拍照上传', featureLabel:'气候特征归纳', featurePH:'' },
-        task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' }
+        task2:{ westTitle:'🌡️ 欧洲部分（西）气候难度', westPH:'提示：从气温、降水、冻土等角度分析…', eastTitle:'🌡️ 亚洲部分（东）气候难度', eastPH:'提示：从气温、降水、冻土等角度分析…', conclusionPH:'综合比较欧洲部分和亚洲部分修建铁路的气候难度差异' }
     },
     river: { id:'river', name:'河湖组', icon:'🌊', gradient:'linear-gradient(135deg,#1565c0,#1976d2)', color:'#1565c0', keyword:'河湖 鄂毕河 叶尼塞河 勒拿河',
         task1:{ title:'从课本图册中找到河湖相关图片，拍照上传', featureLabel:'河湖特征归纳', featurePH:'' },
-        task2:{ westTitle:'🔵 俄罗斯西部', westPH:'', eastTitle:'🔴 俄罗斯东部', eastPH:'', conclusionPH:'' }
+        task2:{ westTitle:'🌊 欧洲部分（西）河湖难度', westPH:'提示：从河流数量、结冰期等角度分析…', eastTitle:'🌊 亚洲部分（东）河湖难度', eastPH:'提示：从河流数量、结冰期等角度分析…', conclusionPH:'综合比较欧洲部分和亚洲部分修建铁路的河湖难度差异' }
     },
 };
 
@@ -901,7 +908,7 @@ function collectWorksheetData(gkey){
 }
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240609L';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240609M';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
@@ -913,13 +920,7 @@ window.addEventListener('DOMContentLoaded',()=>{
         if(d.group){
             selectGroup(d.group);
             document.getElementById('groupNumber').value=d.num||1;
-            // ★ 只在从必应返回（localStorage有标记且1小时内）时才自动恢复课堂
-            const _bingFlag=localStorage.getItem('_bingReturn');
-            const _bingTime=parseInt(localStorage.getItem('_bingReturnTime')||'0');
-            const _bingValid=_bingFlag==='1' && (Date.now()-_bingTime)<3600000;
-            if(d.entered===true && _bingValid){
-                localStorage.removeItem('_bingReturn');
-                localStorage.removeItem('_bingReturnTime');
+            if(d.entered===true){
                 currentGroup=d.group;
                 currentGroupNum=d.num||1;
                 document.getElementById('groupSelectOverlay').classList.add('hidden');
@@ -1008,10 +1009,14 @@ function renderMainApp(){
         <div class="task-section"><div class="task-title"><span class="emoji">📷</span>探究过程中我用到的图片有哪些？</div>
             <div class="upload-area" id="uploadArea" onclick="triggerUpload()"><div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div></div>
             <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
-            <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button><button class="upload-btn" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button><button class="upload-btn" onclick="searchImages()" style="border-color:#42a5f5;color:#1565c0;"><span class="btn-icon">🔍</span>搜索Bing图片</button></div>
+            <div class="upload-buttons">
+                <button class="upload-btn camera" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button>
+                <button class="upload-btn album" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button>
+                <button class="upload-btn lib" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button>
+            </div>
         </div>
-        <div class="task-section"><div class="task-title"><span class="emoji">🚂</span>任务二：分析该因素对西伯利亚大铁路建设的影响</div>
-            <div class="tip-box"><div class="tip-label">💡 提示：可以分别从俄罗斯<strong>西部</strong>和<strong>东部</strong>两个区域进行分析</div></div>
+        <div class="task-section"><div class="task-title"><span class="emoji">🚂</span>任务二：从${g.name.replace('组','')}角度比较在亚洲部分和欧洲部分修建西伯利亚大铁路的难度</div>
+            <div class="tip-box"><div class="tip-label">💡 分别从俄罗斯<strong>欧洲部分（西部）</strong>和<strong>亚洲部分（东部）</strong>两个区域进行分析和比较</div></div>
             <div class="region-analysis"><div class="region-card west"><div class="region-label">${g.task2.westTitle}</div><textarea class="answer-textarea" id="westAnswer" placeholder="${g.task2.westPH}" oninput="autoSaveDraft()"></textarea></div><div class="region-card east"><div class="region-label">${g.task2.eastTitle}</div><textarea class="answer-textarea" id="eastAnswer" placeholder="${g.task2.eastPH}" oninput="autoSaveDraft()"></textarea></div></div>
             <div class="conclusion-section"><div class="conclusion-label">📋 综合结论</div><textarea class="answer-textarea" id="conclusionAnswer" placeholder="${g.task2.conclusionPH}" oninput="autoSaveDraft()"></textarea></div>
         </div>
@@ -1079,10 +1084,6 @@ function zoomIn(){zoomLevel+=0.2;document.getElementById('viewerImage').style.tr
 function zoomOut(){if(zoomLevel>0.4){zoomLevel-=0.2;document.getElementById('viewerImage').style.transform=`scale(${zoomLevel})`;}}
 function resetZoom(){zoomLevel=1;document.getElementById('viewerImage').style.transform='scale(1)';}
 document.getElementById('imageViewer').addEventListener('click',function(e){if(e.target===this||e.target.classList.contains('viewer-body'))closeViewer();});
-
-// ============ 搜索图片 ============
-
-function searchImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();localStorage.setItem('_bingReturn','1');localStorage.setItem('_bingReturnTime',Date.now().toString());showNotification('🔍 正在新标签页打开Bing图片搜索...');window.open(`https://www.bing.com/images/search?q=${encodeURIComponent(g.keyword)}&setlang=zh-CN`,'_blank');}
 
 // ============ 图片库 ============
 
