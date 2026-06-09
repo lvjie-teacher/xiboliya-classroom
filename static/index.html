@@ -908,7 +908,7 @@ function collectWorksheetData(gkey){
 }
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240609M';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240609N';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
@@ -1753,9 +1753,12 @@ const BUILTIN_IMAGE_LIB = [
   "莫斯科气温曲线和降水量柱状图.jpg",
   "雅库茨克气温曲线和降水量柱状图.jpg"
 ];
-// ★ 直接用内置列表填充缓存（零服务器依赖）
+// ★ 直接用内置列表填充缓存（零服务器依赖，图片从GitHub CDN加载）
 cachedLibraryImages = BUILTIN_IMAGE_LIB.map(function(name){
-    return { name: name.replace('.jpg',''), url: '/image_lib/' + name };
+    return {
+        name: name.replace('.jpg',''),
+        url: 'https://raw.githubusercontent.com/lvjie-teacher/xibolite-classroom/main/static/image_lib/' + encodeURIComponent(name)
+    };
 });
 // 同时直接给 libraryImages 赋值，确保打开图片库时立即可用
 libraryImages = cachedLibraryImages;
