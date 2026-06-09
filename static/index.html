@@ -763,7 +763,7 @@ function collectWorksheetData(gkey){
 }
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240609E';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240609F';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
@@ -864,14 +864,13 @@ function renderMainApp(){
     document.getElementById('headerSubtitle').textContent=`${g.icon} ${g.name} · 第${currentGroupNum}小组`;
     document.getElementById('groupCardContainer').innerHTML=`
     <div class="group-card"><div class="group-header" style="background:${g.gradient}"><span class="group-icon">${g.icon}</span><span class="group-name">${g.name} · 第${currentGroupNum}小组</span></div><div class="group-body">
-        <div class="task-section"><div class="task-title"><span class="emoji">📸</span>任务一：${g.task1.title}</div>
+        <div class="task-section"><div class="task-title"><span class="emoji">📋</span>任务一：完成填空探究学案</div>
+            ${renderWorksheet()}
+        </div>
+        <div class="task-section"><div class="task-title"><span class="emoji">📷</span>探究过程中我用到的图片有哪些？</div>
             <div class="upload-area" id="uploadArea" onclick="triggerUpload()"><div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div></div>
             <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
             <div class="upload-buttons"><button class="upload-btn" onclick="openCamera()"><span class="btn-icon">📷</span>拍照上传</button><button class="upload-btn" onclick="triggerUpload()"><span class="btn-icon">🖼️</span>从相册选择</button><button class="upload-btn" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button><button class="upload-btn" onclick="searchImages()" style="border-color:#42a5f5;color:#1565c0;"><span class="btn-icon">🔍</span>搜索Bing图片</button></div>
-        </div>
-        <div class="task-section"><div class="task-title"><span class="emoji">📝</span>根据上传的图片，归纳特征并回答：</div>
-            <div class="answer-area"><div class="answer-label">${g.task1.featureLabel}：</div><textarea class="answer-textarea" id="featureAnswer" placeholder="${g.task1.featurePH}" oninput="autoSaveDraft()"></textarea>
-            ${renderWorksheet()}</div>
         </div>
         <div class="task-section"><div class="task-title"><span class="emoji">🚂</span>任务二：分析该因素对西伯利亚大铁路建设的影响</div>
             <div class="tip-box"><div class="tip-label">💡 提示：可以分别从俄罗斯<strong>西部</strong>和<strong>东部</strong>两个区域进行分析</div></div>
@@ -1279,7 +1278,7 @@ function renderAchievementWall(results){
 function openViewerFromWall(gid,idx){let r=cachedResults[gid];if(!r)try{r=JSON.parse(localStorage.getItem('classResults')||'{}')[gid];}catch(e){}if(r&&r.images&&r.images.length>idx){viewerImages=r.images;viewerIndex=idx;zoomLevel=1;document.getElementById('viewerImage').src=viewerImages[viewerIndex];document.getElementById('viewerImage').style.transform='scale(1)';document.getElementById('imageViewer').classList.add('active');updateImageCounter();}}
 
 // ============ 展示模式 ============
-function presentGroup(){const data=collectData();const g=GROUPS[currentGroup];if(!(data.feature||data.west||data.east||data.conclusion||data.images.length>0)){showNotification('请先完成任务内容再展示');return;}presGroups=[{...data,group_key:currentGroup,group_icon:g.icon,group_name:g.name,group_num:currentGroupNum,color:g.color}];presGroupIdx=0;enterPresentation();}
+function presentGroup(){const data=collectData();const g=GROUPS[currentGroup];const wsFilled=data.worksheet&&Object.values(data.worksheet).some(arr=>arr.some(v=>v.value));if(!(wsFilled||data.images.length>0)){showNotification('请先完成填空探究学案再展示');return;}presGroups=[{...data,group_key:currentGroup,group_icon:g.icon,group_name:g.name,group_num:currentGroupNum,color:g.color}];presGroupIdx=0;enterPresentation();}
 async function presentAll(){
     let results={};if(serverMode){try{const r=await fetch('/api/results?_t='+Date.now());results=await r.json();}catch(e){}}
     if(!serverMode){
@@ -1576,7 +1575,7 @@ function scrollToTop(){window.scrollTo({top:0,behavior:'smooth'});}
 let _saveTimer=null;
 function autoSaveDraft(){if(_saveTimer)clearTimeout(_saveTimer);_saveTimer=setTimeout(()=>{saveDraft();},800);}
 function saveDraft(){if(!currentGroup)return;try{const d=collectData();d.imageUrls=imageUrls.slice();localStorage.setItem(`draft_${currentGroup}_${currentGroupNum}`,JSON.stringify(d));}catch(e){}}
-function loadDraft(){try{const data=JSON.parse(localStorage.getItem(`draft_${currentGroup}_${currentGroupNum}`)||'null');if(!data)return false;if(data.feature)document.getElementById('featureAnswer').value=data.feature;if(data.west)document.getElementById('westAnswer').value=data.west;if(data.east)document.getElementById('eastAnswer').value=data.east;if(data.conclusion)document.getElementById('conclusionAnswer').value=data.conclusion;if(data.worksheet)restoreWorksheetData(data.worksheet);if(data.images&&data.images.length){uploadedImages=data.images;updateUploadArea();}if(data.imageUrls&&data.imageUrls.length){imageUrls=data.imageUrls;}return true;}catch(e){return false;}}
+function loadDraft(){try{const data=JSON.parse(localStorage.getItem(`draft_${currentGroup}_${currentGroupNum}`)||'null');if(!data)return false;const fa=document.getElementById('featureAnswer');if(data.feature&&fa)fa.value=data.feature;if(data.west)document.getElementById('westAnswer').value=data.west;if(data.east)document.getElementById('eastAnswer').value=data.east;if(data.conclusion)document.getElementById('conclusionAnswer').value=data.conclusion;if(data.worksheet)restoreWorksheetData(data.worksheet);if(data.images&&data.images.length){uploadedImages=data.images;updateUploadArea();}if(data.imageUrls&&data.imageUrls.length){imageUrls=data.imageUrls;}return true;}catch(e){return false;}}
 function restoreWorksheetData(wsData){
     if(!wsData || !currentGroup) return;
     Object.keys(wsData).forEach(qKey => {
