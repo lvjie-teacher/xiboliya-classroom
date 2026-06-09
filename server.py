@@ -407,6 +407,11 @@ def api_image_library():
                 })
     return jsonify({"images": images})
 
+@app.route('/image_lib/<filename>')
+def image_lib_file(filename):
+    """图片库静态文件"""
+    return send_from_directory(str(IMAGE_LIB_DIR), filename)
+
 # ============ 静态文件服务 ============
 
 @app.route('/')
