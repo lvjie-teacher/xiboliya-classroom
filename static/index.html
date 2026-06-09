@@ -900,7 +900,7 @@ function collectWorksheetData(gkey){
 }
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240609J';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240609K';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
@@ -1086,7 +1086,7 @@ function searchImages(){const g=GROUPS[currentGroup];if(!g)return;saveDraft();lo
 // ============ 图片库 ============
 let libraryImages=[], selectedLibraryIdx=[];
 
-async function openImageLibrary(readOnly){
+function openImageLibrary(readOnly){
     // 记录是否只读模式（教师从展示模式查看图片库）
     window._ilReadOnly = !!readOnly;
     document.getElementById('imageLibraryOverlay').classList.add('active');
@@ -1102,26 +1102,11 @@ async function openImageLibrary(readOnly){
         if(footer){ footer.style.display = ''; }
         document.getElementById('imageLibraryOverlay').classList.remove('readonly');
     }
-    // 使用缓存（预加载或上次已获取）
-    if(cachedLibraryImages !== null){
-        selectedLibraryIdx=[];
-        updateIlCount();
-        libraryImages = cachedLibraryImages;
-        renderImageLibrary();
-        return;
-    }
-    document.getElementById('ilGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#999;">⏳ 加载中...</div>';
+    // 使用内置缓存（零服务器依赖，图片列表在页面加载时已初始化）
     selectedLibraryIdx=[];
     updateIlCount();
-    try{
-        const r=await fetch('/api/image_library');
-        const d=await r.json();
-        libraryImages=d.images||[];
-        cachedLibraryImages = libraryImages;
-        renderImageLibrary();
-    }catch(e){
-        document.getElementById('ilGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#c62828;">❌ 加载失败，请检查网络</div>';
-    }
+    libraryImages = cachedLibraryImages;
+    renderImageLibrary();
 }
 function closeImageLibrary(){
     document.getElementById('imageLibraryOverlay').classList.remove('active');
@@ -1752,12 +1737,27 @@ setInterval(()=>{if(currentGroup)saveDraft();},30000);
 function closeApp(){if(!confirm('确定要退出吗？'))return;const s=localStorage.getItem('selectedGroup');if(s)try{const d=JSON.parse(s);d.entered=false;localStorage.setItem('selectedGroup',JSON.stringify(d));}catch(e){}document.getElementById('groupSelectOverlay').classList.remove('hidden');const fb=document.getElementById('floatingBackBtn');if(fb)fb.style.display='none';showNotification('已退出课堂');}
 function showNotification(msg){const o=document.querySelector('.ntoast');if(o)o.remove();const t=document.createElement('div');t.className='ntoast';t.textContent=msg;t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 24px;border-radius:24px;font-size:14px;z-index:1000;max-width:90%;text-align:center;animation:fadeIn 0.3s ease-out;';document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
 // 预加载图片库列表（页面加载后 2 秒开始，不阻塞 UI）
-setTimeout(() => {
-    if(cachedLibraryImages !== null) return;
-    fetch('/api/image_library')
-        .then(r => r.json())
-        .then(d => { cachedLibraryImages = d.images || []; })
-        .catch(() => {});
+// 图片库是静态文件，直接嵌入文件名列表，不需要服务器 API
+const BUILTIN_IMAGE_LIB = [
+  "俄罗斯1月平均气温.jpg",
+  "俄罗斯7月平均气温.jpg",
+  "俄罗斯主要工业区和主要铁路分布.jpg",
+  "俄罗斯人口分布.jpg",
+  "俄罗斯地形.jpg",
+  "俄罗斯年降水量.jpg",
+  "俄罗斯有永久冻土分布图.jpg",
+  "俄罗斯森林和矿产资源分布.jpg",
+  "俄罗斯气候类型分布.jpg",
+  "俄罗斯种植业分布.jpg",
+  "莫斯科气温曲线和降水量柱状图.jpg",
+  "雅库茨克气温曲线和降水量柱状图.jpg"
+];
+// ★ 直接用内置列表填充缓存（零服务器依赖）
+cachedLibraryImages = BUILTIN_IMAGE_LIB.map(function(name){
+    return { name: name.replace('.jpg',''), url: '/image_lib/' + name };
+});
+setTimeout(function(){
+    if(libraryImages.length === 0){ libraryImages = cachedLibraryImages; }
 }, 2000);
 </script>
 </body>
