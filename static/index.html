@@ -302,6 +302,7 @@
         .ws-score { font-weight:700; font-size:18px; }
         .ws-score.good { color:#2e7d32; }
         .ws-score.bad { color:#c62828; }
+        .ws-error-hint { font-size:12px; color:#e65100; margin-top:4px; padding:3px 8px; background:#fff3e0; border-radius:4px; display:inline-block; }
 
         /* 地形组 - 绿色 */
         .ws-terr { border-color:#639922; } .ws-terr .ws-header { background:#EAF3DE; color:#27500A; border-bottom-color:#639922; }
@@ -492,16 +493,20 @@ const WORKSHEET_DATA = {
             {
                 text: '俄罗斯的地形类型{select:多样|单一}，以{blank}、{blank}、{blank}地形为主。',
                 blanks: ['平原','高原','山地'],
-                selectIdx: 0, answers: ['多样']
+                selectIdx: 0, answers: ['多样'],
+                shuffle: true,
+                errorHint: '认真审图'
             },
             {
                 text: '读图判断，自西向东地形区依次为：东欧平原 → {blank} → 中西伯利亚高原 → {blank}。',
-                blanks: ['西西伯利亚平原','东西伯利亚山地']
+                blanks: ['西西伯利亚平原','东西伯利亚山地'],
+                orderHint: '要认真审题，注意方向上的词'
             },
             {
                 text: '俄罗斯的总体地势特征是{select:东高西低|西高东低|南高北低}，地势起伏程度总体{select:较大|较小}。',
                 selects: [['东高西低','西高东低','南高北低'],['较大','较小']],
-                answers: ['东高西低','较大']
+                answers: ['东高西低','较大'],
+                errorHint: '要学会认真分析，分析能力还不够'
             }
         ]
     },
@@ -671,9 +676,69 @@ function gradeWorksheet(gkey){
     const ws = WORKSHEET_DATA[gkey];
     if(!ws) return;
     let correct = 0, total = 0;
+    // 清空旧提示
+    document.querySelectorAll('.ws-error-hint').forEach(el => el.remove());
 
     ws.questions.forEach((q, qi) => {
-        // 处理 blanks
+        // ===== 处理 shuffle =====
+        if(q.shuffle && q.blanks && q.blanks.length > 1){
+            var allInputs = document.querySelectorAll(`input[data-gkey="${gkey}"][data-qi="${qi}"]`);
+            var values = [], allFilled = true;
+            allInputs.forEach(function(inp){
+                var v = inp.value.trim();
+                values.push(v);
+                if(!v) allFilled = false;
+            });
+            if(!allFilled){
+                allInputs.forEach(function(inp){
+                    inp.className = inp.className.replace(/\bws-(correct|wrong)\b/g,'');
+                    var icon = inp.nextElementSibling;
+                    if(icon && icon.classList.contains('ws-grade-icon')) icon.remove();
+                });
+                return;
+            }
+            // 检查值是否一一对应（忽略顺序）
+            var sortedVals = values.slice().sort();
+            var sortedAns = q.blanks.slice().sort();
+            var allCorrect = sortedVals.every(function(v, i){ return v === sortedAns[i]; });
+            if(allCorrect){
+                allInputs.forEach(function(inp){
+                    total++; correct++;
+                    inp.className = inp.className.replace(/\bws-(correct|wrong)\b/g,'') + ' ws-correct';
+                    // 加✓
+                    var icon = inp.nextElementSibling;
+                    if(icon && icon.classList.contains('ws-grade-icon')) icon.remove();
+                    icon = document.createElement('span');
+                    icon.className = 'ws-grade-icon';
+                    icon.textContent = '✓';
+                    icon.style.color = '#4caf50';
+                    inp.parentNode.insertBefore(icon, inp.nextSibling);
+                });
+            } else {
+                // 有错的
+                allInputs.forEach(function(inp, bi){
+                    total++;
+                    var v = inp.value.trim();
+                    var isRight = !!q.blanks.find(function(b){ return b === v; });
+                    inp.className = inp.className.replace(/\bws-(correct|wrong)\b/g,'') + (isRight ? ' ws-correct' : ' ws-wrong');
+                    var icon = inp.nextElementSibling;
+                    if(icon && icon.classList.contains('ws-grade-icon')) icon.remove();
+                    icon = document.createElement('span');
+                    icon.className = 'ws-grade-icon';
+                    icon.textContent = isRight ? '✓' : '✗';
+                    icon.style.color = isRight ? '#4caf50' : '#f44336';
+                    inp.parentNode.insertBefore(icon, inp.nextSibling);
+                    if(isRight) correct++;
+                });
+                // 显示 hint
+                if(q.errorHint) showWsHint(gkey, qi, q.errorHint);
+            }
+            return; // 跳过普通判卷
+        }
+
+        // ===== 处理普通 blanks =====
+        var qiHasBlankError = false;
+        var qiBlankSwap = false;
         (q.blanks || []).forEach((answer, bi) => {
             total++;
             const input = document.querySelector(`input[data-gkey="${gkey}"][data-qi="${qi}"][data-bi="${bi}"]`);
@@ -683,7 +748,13 @@ function gradeWorksheet(gkey){
 
             const isRight = checkAnswer(val, answer, q.acceptAlt, q.alts, bi);
             input.className = input.className.replace(/\bws-(correct|wrong)\b/g,'') + (isRight ? ' ws-correct' : ' ws-wrong');
-            // 添加对错图标
+            if(!isRight) qiHasBlankError = true;
+            // 检查是否交换顺序（两个空的值互换）
+            if(q.orderHint && q.blanks && q.blanks.length === 2 && !isRight){
+                var otherBi = bi === 0 ? 1 : 0;
+                var otherInput = document.querySelector(`input[data-gkey="${gkey}"][data-qi="${qi}"][data-bi="${otherBi}"]`);
+                if(otherInput && otherInput.value.trim() === answer) qiBlankSwap = true;
+            }
             let icon = input.nextElementSibling;
             if(icon && icon.classList.contains('ws-grade-icon')) icon.remove();
             icon = document.createElement('span');
@@ -693,7 +764,12 @@ function gradeWorksheet(gkey){
             input.parentNode.insertBefore(icon, input.nextSibling);
             if(isRight) correct++;
         });
-        // 处理 selects
+        // 有错且是顺序换错 → 显示方向提示
+        if(qiBlankSwap && q.orderHint) showWsHint(gkey, qi, q.orderHint);
+        // 普通错误
+        else if(qiHasBlankError && q.errorHint) showWsHint(gkey, qi, q.errorHint);
+
+        // ===== 处理 selects =====
         (q.answers || []).forEach((answer, si) => {
             total++;
             const sel = document.querySelector(`select[data-gkey="${gkey}"][data-qi="${qi}"][data-si="${si}"]`);
@@ -705,6 +781,7 @@ function gradeWorksheet(gkey){
             sel.style.backgroundColor = isRight ? '#e8f5e9' : '#ffebee';
             sel.style.color = isRight ? '#2e7d32' : '#c62828';
             if(isRight) correct++;
+            else if(q.errorHint) showWsHint(gkey, qi, q.errorHint);
         });
     });
 
@@ -728,6 +805,19 @@ function getEvalText(pct, correct, total){
     if(pct>=40) return '📖 再看看课本吧';
     if(pct>0) return '💪 需要多练习哦';
     return '❌ 还没作答呢';
+}
+// 显示题目级提示
+function showWsHint(gkey, qi, text){
+    const target = document.querySelector(`input[data-gkey="${gkey}"][data-qi="${qi}"]`);
+    if(!target) return;
+    const wsQ = target.closest('.ws-q');
+    if(!wsQ) return;
+    var existing = wsQ.querySelector('.ws-error-hint');
+    if(existing){ existing.textContent = '💡 ' + text; return; }
+    var el = document.createElement('div');
+    el.className = 'ws-error-hint';
+    el.textContent = '💡 ' + text;
+    wsQ.appendChild(el);
 }
 
 function checkAnswer(val, answer, acceptAlt, alts, bi){
@@ -765,7 +855,7 @@ function collectWorksheetData(gkey){
 }
 
 // ============ 版本刷新（自动清除浏览器缓存）============
-(function(){const v='240609G';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
+(function(){const v='240609H';if(localStorage.getItem('_app_ver')!==v){localStorage.setItem('_app_ver',v);location.reload(true);}})();
 
 // ============ 初始化 ============
 window.addEventListener('DOMContentLoaded',()=>{
