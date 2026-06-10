@@ -372,6 +372,8 @@
         .t2-conclusion-label { font-size: 15px; font-weight: 600; color: #4a148c; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .t2-conclusion-textarea { width: 100%; min-height: 70px; border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; font-size: 14px; font-family: inherit; resize: vertical; outline: none; }
         .t2-conclusion-textarea:focus { border-color: #7b1fa2; }
+        /* 任务二提示语样式 */
+        .t2-hint { font-size: 12px; color: #888; margin-top: 6px; line-height: 1.5; padding: 6px 8px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #1a237e; }
     </style>
 </head>
 <body>
@@ -611,12 +613,27 @@ function renderTask2Table() {
     const gkey = currentGroup;
     const td = TASK2_TABLE_DATA[gkey];
     if (!td) return '';
-    const rows = td.aspects.map((asp, ai) => `
-        <tr>
+    
+    // 根据不同组生成不同的"主要难题"提示（不写结论，只提示思考方向）
+    const hints = {
+        terrain: '提示：可从地势起伏大小、是否需要开挖隧道或填充峡谷等工程角度思考…',
+        climate: '提示：可从永冻土分布、低温对施工的影响、每年有效施工时间等角度思考…',
+        river:   '提示：可从需要跨越的河流数量、每座桥梁的长度/高度等技术难度角度思考…'
+    };
+    
+    const rows = td.aspects.map((asp, ai) => {
+        let extra = '';
+        // 如果是"导致的主要难题"这一行，加上提示语
+        if (asp.indexOf('主要难题') !== -1) {
+            extra = `<div class="t2-hint">${hints[gkey]||'提示：可从修建难度角度思考…'}</div>`;
+        }
+        return `<tr>
             <td class="t2-aspect"><strong>${asp}</strong></td>
-            <td class="t2-west"><textarea class="t2-textarea" data-ai="${ai}" data-region="west" placeholder="欧洲部分…" oninput="autoSaveDraft()"></textarea></td>
-            <td class="t2-east"><textarea class="t2-textarea" data-ai="${ai}" data-region="east" placeholder="亚洲部分…" oninput="autoSaveDraft()"></textarea></td>
-        </tr>`).join('');
+            <td class="t2-west"><textarea class="t2-textarea" data-ai="${ai}" data-region="west" placeholder="欧洲部分…" oninput="autoSaveDraft()"></textarea>${extra}</td>
+            <td class="t2-east"><textarea class="t2-textarea" data-ai="${ai}" data-region="east" placeholder="亚洲部分…" oninput="autoSaveDraft()"></textarea>${extra}</td>
+        </tr>`;
+    }).join('');
+    
     return `<div class="t2-table-wrap">
         <table class="t2-table">
             <thead><tr>
@@ -626,10 +643,6 @@ function renderTask2Table() {
             </tr></thead>
             <tbody>${rows}</tbody>
         </table>
-        <div class="t2-conclusion">
-            <div class="t2-conclusion-label">📋 综合结论（写2-3条）</div>
-            <textarea class="t2-conclusion-textarea" id="t2Conclusion" placeholder="结合表格，从${td.label.replace('组','')}角度分析修建铁路的难度差异…" oninput="autoSaveDraft()"></textarea>
-        </div>
     </div>`;
 }
 
