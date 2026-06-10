@@ -587,6 +587,12 @@ const WORKSHEET_DATA = {
             {
                 text: '受纬度较高影响，大部分河流结冰期{select:很长|很短|无}。',
                 selects: [['很长','很短','无']], answers: ['很长']
+            },
+            {
+                text: '世界最深湖泊{blank}湖位于{select:西|东}伯利亚地区，铁路修建需{select:绕行|直接穿过}。',
+                blanks: ['贝加尔'],
+                selects: [['西','东'],['绕行','直接穿过']],
+                answers: ['西','绕行']
             }
         ]
     }
@@ -604,7 +610,7 @@ const TASK2_TABLE_DATA = {
     },
     river: {
         label: '河流组', icon: '🌊', cls: 'river',
-        aspects: ['跨越大河的数量', '河面宽度', '导致的主要难题']
+        aspects: ['跨越大河的数量', '河面宽度', '贝加尔湖的影响', '导致的主要难题']
     }
 };
 
@@ -614,18 +620,21 @@ function renderTask2Table() {
     const td = TASK2_TABLE_DATA[gkey];
     if (!td) return '';
     
-    // 根据不同组生成不同的"主要难题"提示（不写结论，只提示思考方向）
+    // 根据不同组生成不同的提示（不写结论，只提示思考方向）
     const hints = {
-        terrain: '提示：可从地势起伏大小、是否需要开挖隧道或填充峡谷等工程角度思考…',
-        climate: '提示：可从永冻土分布、低温对施工的影响、每年有效施工时间等角度思考…',
-        river:   '提示：可从需要跨越的河流数量、每座桥梁的长度/高度等技术难度角度思考…'
+        terrain: {'导致的主要难题':'提示：可从地势起伏大小、是否需要开挖隧道或填充峡谷等工程角度思考…'},
+        climate: {'导致的主要难题':'提示：可从永冻土分布、低温对施工的影响、每年有效施工时间等角度思考…'},
+        river:   {
+            '贝加尔湖的影响': '提示：贝加尔湖是世界最深湖，位于西伯利亚南部，思考铁路是绕行还是沿湖修建…',
+            '导致的主要难题': '提示：可从需要跨越的河流数量、每座桥梁的长度/高度等技术难度角度思考…'
+        }
     };
     
     const rows = td.aspects.map((asp, ai) => {
         let extra = '';
-        // 如果是"导致的主要难题"这一行，加上提示语
-        if (asp.indexOf('主要难题') !== -1) {
-            extra = `<div class="t2-hint">${hints[gkey]||'提示：可从修建难度角度思考…'}</div>`;
+        // 如果该行有提示语，加上
+        if (hints[gkey] && hints[gkey][asp]) {
+            extra = `<div class="t2-hint">${hints[gkey][asp]}</div>`;
         }
         return `<tr>
             <td class="t2-aspect"><strong>${asp}</strong></td>
