@@ -367,9 +367,9 @@
         .pres-t2-gname { font-size:15px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.9); }
 
         /* ============ 任务二对比表格 ============ */
-        .t2-table-wrap { margin-bottom: 16px; }
+        .t2-table-wrap { margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .t2-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-        .t2-table th, .t2-table td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; vertical-align: top; }
+        .t2-table th, .t2-table td { border: 1px solid #ccc; padding: 8px 10px; text-align: left; vertical-align: top; box-sizing: border-box; }
         .t2-table th { background: #f0f0f0; color: #222; font-weight: 700; text-align: center; border-bottom: 2px solid #999; }
         .t2-th-aspect { width: 22%; }
         .t2-th-west { width: 39%; }
@@ -377,7 +377,22 @@
         .t2-aspect { font-weight: 600; color: #333; }
         .t2-west { background: #f9fcff; }
         .t2-east { background: #fff9f9; }
-        .t2-textarea { width: 100%; min-height: 100px; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; line-height: 1.6; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box; display: block; }
+        .t2-textarea { width: 100%; min-height: 180px; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; line-height: 1.6; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box; display: block; }
+        /* 手机/pad 适配：让文本框更大 */
+        @media (max-width: 768px) {
+            .t2-textarea { min-height: 220px; padding: 14px; font-size: 15px; }
+            .t2-table { font-size: 12px; }
+            .t2-table th, .t2-table td { padding: 10px 8px; }
+            .t2-hint { font-size: 11px; padding: 5px 6px; }
+        }
+        @media (max-width: 480px) {
+            .t2-textarea { min-height: 260px; padding: 16px; font-size: 16px; line-height: 1.8; }
+            .t2-table { font-size: 11px; }
+            .t2-table th, .t2-table td { padding: 8px 6px; }
+            .t2-th-aspect { width: 25%; }
+            .t2-th-west { width: 37.5%; }
+            .t2-th-east { width: 37.5%; }
+        }
         .t2-textarea:focus { border-color: #1a237e; border-width: 2px; }
         .t2-conclusion { background: #f3e5f5; border-radius: 8px; padding: 14px; margin-top: 12px; border-left: 4px solid #7b1fa2; }
         .t2-conclusion-label { font-size: 15px; font-weight: 600; color: #4a148c; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
@@ -640,7 +655,7 @@ function renderTask2Table() {
     
     const rows = td.aspects.map((asp, ai) => {
         let hintHtml = '';
-        let textareaRows = '3';
+        let textareaRows = '4';
         // 如果该行有提示语，加在左侧【对比方面】列里
         if (TASK2_HINTS[gkey] && TASK2_HINTS[gkey][asp]) {
             hintHtml = `<div class="t2-hint">${TASK2_HINTS[gkey][asp]}</div>`;
