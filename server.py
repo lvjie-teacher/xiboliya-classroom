@@ -41,10 +41,6 @@ DATA_FILE = EXE_DIR / "results.json"
 PORT = int(os.environ.get('PORT', 8888))
 IS_CLOUD = os.environ.get('CLOUD_DEPLOY', '') == '1'
 
-# DeepSeek AI 点评配置（通过环境变量设置，或在 Render Dashboard 中配置）
-DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', '')
-DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
-
 # ============ Flask 导入 ============
 from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
@@ -143,7 +139,6 @@ def api_config():
     """返回服务器配置信息"""
     return jsonify({
         "server_mode": True,
-        "deepseek_available": bool(DEEPSEEK_API_KEY),
         "version": "1.0",
         "local_ip": get_local_ip(),
         "all_ips": get_all_local_ips(),
@@ -302,62 +297,6 @@ def api_clear_group():
                 return jsonify({"status": "not_found", "message": "该组没有提交记录"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-# ============ AI 智能点评 ============
-
-def build_evaluate_prompt(worksheet_data, group_key):
-    group_name = {'terrain': '地形', 'climate': '气候', 'river': '河湖'}.get(group_key, group_key)
-    prompt = f"""你是初中地理老师，请根据以下学生的填空答案，从"{group_name}特征分析能力"角度给出整体评价。
-评价要求：
-1. 指出学生在该组题目中表现出的分析能力水平（好/中/需加强）
-2. 具体的优点（答对的题目体现的能力）
-3. 存在的不足（答错的题目反映的问题）
-4. 一句简短的学习建议
-5. 总字数控制在 100 字以内，口语化、鼓励性
-
-学生的填空答案如下："""
-    for q_key, answers in worksheet_data.items():
-        q_num = q_key.replace('q', '')
-        ans_text = []
-        for ans in answers:
-            val = ans.get('value', '')
-            if val:
-                ans_text.append(val)
-        if ans_text:
-            prompt += f"\n第{q_num}题回答：{'、'.join(ans_text)}"
-    return prompt
-
-@app.route('/api/ai_evaluate', methods=['POST'])
-def api_ai_evaluate():
-    try:
-        data = request.get_json(force=True)
-        worksheet = data.get('worksheet', {})
-        group_key = data.get('group_key', '')
-        if not worksheet:
-            return jsonify({"error": "请先提交答案再点评"}), 400
-        if not DEEPSEEK_API_KEY:
-            return jsonify({"evaluation": "🔑 老师尚未配置 DeepSeek API Key，请在 Render Dashboard 中添加环境变量 DEEPSEEK_API_KEY"}), 200
-        prompt = build_evaluate_prompt(worksheet, group_key)
-        resp = http_requests.post(DEEPSEEK_API_URL, headers={
-            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
-            "Content-Type": "application/json"
-        }, json={
-            "model": "deepseek-chat",
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 500, "temperature": 0.7
-        }, timeout=30)
-        if resp.status_code != 200:
-            return jsonify({"evaluation": f"AI 服务暂时不可用（{resp.status_code}），请稍后重试"}), 200
-        result = resp.json()
-        evaluation = result.get('choices', [{}])[0].get('message', {}).get('content', '')
-        if not evaluation:
-            evaluation = "AI 返回结果为空，请重试"
-        return jsonify({"evaluation": evaluation})
-    except http_requests.exceptions.Timeout:
-        return jsonify({"evaluation": "⏰ AI 响应超时，请稍后重试"}), 200
-    except Exception as e:
-        print(f"[服务器] AI 点评出错: {e}")
-        return jsonify({"evaluation": "AI 点评服务暂时不可用，请稍后重试"}), 200
 
 @app.route('/api/web_search', methods=['POST'])
 def api_web_search():

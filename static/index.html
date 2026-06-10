@@ -208,7 +208,7 @@
         .pres-img-nav .pres-zoom-btn { font-size: 14px; padding: 6px 12px; }
         .pres-img-counter { font-size: 14px; color: rgba(255,255,255,0.7); min-width: 60px; text-align: center; }
         .pres-no-img { color: rgba(255,255,255,0.3); font-size: 18px; text-align: center; padding: 40px; }
-        .pres-right { width: 35%; max-width: 380px; min-width: 260px; background: linear-gradient(135deg, #1a237e, #283593); overflow-y: auto; padding: 20px 16px; }
+        .pres-right { width: 33.33%; max-width: 420px; min-width: 240px; background: linear-gradient(135deg, #1a237e, #283593); overflow-y: auto; padding: 16px 12px; }
         .pres-group-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 14px; margin-bottom: 16px; font-size: 18px; font-weight: 700; }
         .pres-text-field { margin-bottom: 18px; }
         .pres-text-label { font-size: 17px; color: rgba(255,255,255,0.55); margin-bottom: 6px; letter-spacing: 1.5px; font-weight: 600; }
@@ -412,7 +412,6 @@
     <div class="bottom-actions">
         <button class="action-btn all-present" onclick="presentAll()">🌐 全部展示</button>
         <button class="action-btn submit" onclick="submitResult()">📤 提交成果</button>
-        <button class="action-btn eval" onclick="aiEvaluate()">🤖 AI 点评</button>
         <button class="action-btn refresh" onclick="refreshWall()">🔄 刷新成果</button>
         <button class="action-btn clear-group" onclick="clearGroupData()">🗑 清空本组</button>
         <button class="action-btn clear-all" onclick="clearAllData()">⚠️ 清空全部【仅老师·学生勿点】</button>
@@ -1430,35 +1429,6 @@ async function submitResult(){
     await refreshWall();
 }
 
-// ============ AI 智能点评 ============
-async function aiEvaluate(){
-    if(!currentGroup){showNotification('请先进入一个小组');return;}
-    const wsData = collectWorksheetData(currentGroup);
-    if(!wsData || !Object.values(wsData).some(arr => arr.some(v => v.value))){
-        showNotification('⚠️ 请先完成填空探究学案再点评');
-        return;
-    }
-    const area = document.getElementById('aiEvalArea');
-    area.style.display = 'block';
-    area.innerHTML = '<div style="text-align:center;padding:10px;color:#8e24aa;">⏳ AI 正在分析你的答案...</div>';
-    showNotification('🤖 AI 正在点评，请稍候...');
-    try{
-        const r = await fetch('/api/ai_evaluate', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({worksheet:wsData, group_key:currentGroup})
-        });
-        const d = await r.json();
-        if(d.evaluation){
-            area.innerHTML = '<div style="font-size:14px;font-weight:700;color:#6a1b9a;margin-bottom:8px;">🤖 AI 整体点评</div>'
-                + '<div style="font-size:14px;line-height:1.8;color:#333;">' + d.evaluation.replace(/\n/g,'<br>') + '</div>';
-        } else if(d.error){
-            area.innerHTML = '<div style="color:#c62828;font-size:13px;">❌ ' + d.error + '</div>';
-        }
-    }catch(e){
-        area.innerHTML = '<div style="color:#c62828;font-size:13px;">❌ 网络请求失败，请检查连接</div>';
-    }
-}
 async function refreshWall(){
     const body=document.getElementById('achievementBody');
     // 显示正在加载
@@ -1594,10 +1564,7 @@ function renderPresSlide(){
             ${renderPresWorksheetGrid()}
         </div>
         <div class="pres-tab-content ${presTaskTab===2?'active':''}" id="presTab2">
-            ${g.feature?`<div class="pres-text-field"><div class="pres-text-label">${go.task1?.featureLabel||'特征归纳'}</div><div class="pres-text-value">${g.feature}</div></div>`:''}
-            ${g.west?`<div class="pres-text-field"><div class="pres-text-label">🔹 西部分析</div><div class="pres-text-value">${g.west}</div></div>`:''}
-            ${g.east?`<div class="pres-text-field"><div class="pres-text-label">🔸 东部分析</div><div class="pres-text-value">${g.east}</div></div>`:''}
-            ${g.conclusion?`<div class="pres-text-field"><div class="pres-text-label">📋 综合结论</div><div class="pres-text-value">${g.conclusion}</div></div>`:''}
+            ${renderPresTask2Grid()}
         </div>`;
     // 左侧图片（固定不变，不随Tab切换）
     renderPresImage();
@@ -1709,24 +1676,69 @@ function renderPresWorksheetGrid(){
     return html;
 }
 
+// ★ 展示模式：任务二Tab专用渲染函数
+function renderPresTask2Grid(){
+    const curG = presGroups[presGroupIdx];
+    if(!curG || !curG.task2) return '<div style="color:rgba(255,255,255,0.5);padding:20px;">该组尚未提交任务二</div>';
+    
+    const gkey = curG.group_key;
+    const td = TASK2_TABLE_DATA[gkey];
+    if(!td) return '';
+    
+    let html = '<div class="pres-t2-block">';
+    html += '<div class="pres-t2-title">🚂 任务二：对比分析</div>';
+    html += '<div class="pres-t2-scroll">';
+    html += '<table class="pres-t2-table">';
+    html += '<tr><th class="pres-t2-th-aspect">对比方面</th><th class="pres-t2-th-west">欧洲部分（西部）</th><th class="pres-t2-th-east">亚洲部分（东部）</th></tr>';
+    
+    td.aspects.forEach(function(asp, ai){
+        const wVal = (curG.task2.west && curG.task2.west[ai]) || '';
+        const eVal = (curG.task2.east && curG.task2.east[ai]) || '';
+        html += '<tr>';
+        html += '<td class="pres-t2-aspect"><strong>' + asp + '</strong>';
+        // 如果有提示语，显示在左侧列
+        if (hints[gkey] && hints[gkey][asp]) {
+            html += '<div class="pres-t2-hint">' + hints[gkey][asp] + '</div>';
+        }
+        html += '</td>';
+        html += '<td class="pres-t2-west">' + (wVal ? wVal : '<span style="color:rgba(255,255,255,0.3);">未填</span>') + '</td>';
+        html += '<td class="pres-t2-east">' + (eVal ? eVal : '<span style="color:rgba(255,255,255,0.3);">未填</span>') + '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</table>';
+    html += '</div>';
+    
+    if(curG.task2.conclusion){
+        html += '<div class="pres-t2-conclusion"><div class="pres-t2-conclusion-label">📋 综合结论</div>'
+               + '<div class="pres-t2-conclusion-value">' + curG.task2.conclusion + '</div></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
 // ★ 展示模式：任务二表格样式（在CSS中添加）
 function addPresT2Styles(){
     const style = document.createElement('style');
     style.textContent = `
-        .pres-t2-block { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15); }
-        .pres-t2-title { font-size: 17px; color: rgba(255,255,255,0.55); margin-bottom: 10px; letter-spacing: 1.5px; font-weight: 600; }
-        .pres-t2-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
-        .pres-t2-table th, .pres-t2-table td { border: 1px solid rgba(255,255,255,0.2); padding: 7px 10px; text-align: left; vertical-align: top; }
-        .pres-t2-table th { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); font-weight: 700; text-align: center; }
-        .pres-t2-th-aspect { width: 22%; }
-        .pres-t2-th-west { width: 39%; }
-        .pres-t2-th-east { width: 39%; }
-        .pres-t2-aspect { color: rgba(255,255,255,0.7); }
-        .pres-t2-west { color: rgba(255,255,255,0.9); }
-        .pres-t2-east { color: rgba(255,255,255,0.9); }
-        .pres-t2-conclusion { background: rgba(255,255,255,0.08); border-radius: 8px; padding: 12px; margin-top: 8px; }
-        .pres-t2-conclusion-label { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 6px; letter-spacing: 1.5px; font-weight: 600; }
-        .pres-t2-conclusion-value { font-size: 26px; line-height: 2.0; color: rgba(255,255,255,0.98); font-weight: 500; }
+        .pres-t2-block { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); }
+        .pres-t2-title { font-size: 15px; color: rgba(255,255,255,0.55); margin-bottom: 8px; letter-spacing: 1.2px; font-weight: 600; }
+        .pres-t2-scroll { overflow-x: auto; margin-bottom: 10px; }
+        .pres-t2-table { min-width: 100%; border-collapse: collapse; font-size: 12px; }
+        .pres-t2-table th, .pres-t2-table td { border: 1px solid rgba(255,255,255,0.2); padding: 5px 8px; text-align: left; vertical-align: top; }
+        .pres-t2-table th { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); font-weight: 700; text-align: center; white-space: nowrap; }
+        .pres-t2-th-aspect { min-width: 80px; }
+        .pres-t2-th-west { min-width: 100px; }
+        .pres-t2-th-east { min-width: 100px; }
+        .pres-t2-aspect { color: rgba(255,255,255,0.7); font-size: 12px; }
+        .pres-t2-aspect strong { font-size: 13px; }
+        .pres-t2-west { color: rgba(255,255,255,0.9); font-size: 13px; }
+        .pres-t2-east { color: rgba(255,255,255,0.9); font-size: 13px; }
+        .pres-t2-hint { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; line-height: 1.4; }
+        .pres-t2-conclusion { background: rgba(255,255,255,0.08); border-radius: 6px; padding: 10px; margin-top: 6px; }
+        .pres-t2-conclusion-label { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 4px; letter-spacing: 1.2px; font-weight: 600; }
+        .pres-t2-conclusion-value { font-size: 22px; line-height: 1.8; color: rgba(255,255,255,0.98); font-weight: 500; }
     `;
     document.head.appendChild(style);
 }
