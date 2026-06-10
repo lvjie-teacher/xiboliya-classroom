@@ -198,7 +198,8 @@
         /* 展示主体 */
         .pres-main { flex: 1; display: flex; overflow: hidden; }
         .pres-left { flex: 1; display: flex; flex-direction: column; background: #0a0a0a; position: relative; min-width: 0; }
-        .pres-img-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .pres-img-wrap { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: auto; cursor: grab; }
+        .pres-img-wrap.dragging { cursor: grabbing; }
         .pres-img-wrap img { max-width: 95%; max-height: 95%; object-fit: contain; transition: transform 0.2s; }
         .pres-img-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .pres-img-wrap canvas.drawing { pointer-events: auto; cursor: crosshair; }
@@ -1791,8 +1792,12 @@ function renderPresImage(){
         zoomWrap.appendChild(nEl);
         zoomWrap.appendChild(cvs);
     }
-    const zoomWrapEl = document.getElementById('presZoomWrap');
-    zoomWrapEl.style.transform = `scale(${presZoom})`;
+        zoomWrapEl.style.transform = 'none';
+        zoomWrapEl.style.position = 'absolute';
+        zoomWrapEl.style.left = '0px';
+        zoomWrapEl.style.top = '0px';
+        zoomWrapEl.style.width = Math.round(wrap.clientWidth * presZoom) + 'px';
+        zoomWrapEl.style.height = Math.round(wrap.clientHeight * presZoom) + 'px';
     imgEl.src=imgs[presImgIdx];imgEl.style.display='block';imgEl.style.transform='none';
     navEl.style.display='flex';
     document.getElementById('presImgCounter').textContent=`${presImgIdx+1} / ${imgs.length}`;
@@ -1812,9 +1817,8 @@ function initPresCanvas(){
     const wrap=document.getElementById('presImgWrap');
     const canvas=document.getElementById('presCanvas');
     if(!canvas)return;
-    // 保留画笔激活状态，不让切换图片把画笔清掉
     const hadDrawing=canvas.classList.contains('drawing');
-    canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;
+    canvas.width=Math.round(wrap.clientWidth*presZoom);canvas.height=Math.round(wrap.clientHeight*presZoom);
     if(hadDrawing)canvas.classList.add('drawing');
     const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
 }
@@ -1829,7 +1833,10 @@ function bindPresCanvasEvents(){
     function getPos(e){
         const r=canvas.getBoundingClientRect();
         const t=e.touches?e.touches[0]:e;
-        return{x:t.clientX-r.left,y:t.clientY-r.top};
+        // getBoundingClientRect 已自动包含滚动偏移，无需再加 scrollLeft/Top
+        const sx = canvas.width ? r.width / canvas.width : 1;
+        const sy = canvas.height ? r.height / canvas.height : 1;
+        return{x:(t.clientX-r.left)/sx, y:(t.clientY-r.top)/sy};
     }
     function startDraw(e){if(!presDrawing)return;isDrawing=true;const p=getPos(e);lastX=p.x;lastY=p.y;e.preventDefault();}
     function draw(e){
@@ -1875,19 +1882,10 @@ function clearPresDrawing(){const canvas=document.getElementById('presCanvas');i
 // 展示导航
 function presImgPrev(){const g=presGroups[presGroupIdx];if(!g||!g.images||!g.images.length)return;if(presImgIdx>0){presImgIdx--;presZoom=1;renderPresImage();}}
 function presImgNext(){const g=presGroups[presGroupIdx];if(!g||!g.images||!g.images.length)return;if(presImgIdx<g.images.length-1){presImgIdx++;presZoom=1;renderPresImage();}}
-function presZoomIn(){presZoom+=0.25;if(presZoom>5)presZoom=5;const zw=document.getElementById('presZoomWrap');if(zw){zw.style.transform=`scale(${presZoom})`;}const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize=Math.round(16*presZoom)+'px';}
-function presZoomOut(){if(presZoom>0.25){presZoom-=0.25;const zw=document.getElementById('presZoomWrap');if(zw)zw.style.transform=`scale(${presZoom})`;const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize=Math.round(16*presZoom)+'px';}}
-function presZoomReset(){presZoom=1;const zw=document.getElementById('presZoomWrap');if(zw)zw.style.transform='scale(1)';const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize='16px';}
-// 鼠标滚轮缩放
-function presWheelZoom(e){
-    e.preventDefault();
-    const delta=e.deltaY>0?-0.15:0.15;
-    presZoom=Math.max(0.25,Math.min(5,presZoom+delta));
-    const zw=document.getElementById('presZoomWrap');
-    if(zw)zw.style.transform=`scale(${presZoom})`;
-    const ne=document.getElementById('presImgName');
-    if(ne)ne.style.fontSize=Math.round(16*presZoom)+'px';
-}
+function presZoomIn(){presZoom+=0.25;if(presZoom>5)presZoom=5;const wrap=document.getElementById('presImgWrap');const zw=document.getElementById('presZoomWrap');const canvas=document.getElementById('presCanvas');if(!zw||!wrap)return;let saved='';if(canvas&&canvas.width>0){try{saved=canvas.toDataURL();}catch(e){}}zw.style.transform='none';zw.style.width=Math.round(wrap.clientWidth*presZoom)+'px';zw.style.height=Math.round(wrap.clientHeight*presZoom)+'px';if(canvas){canvas.width=Math.round(wrap.clientWidth*presZoom);canvas.height=Math.round(wrap.clientHeight*presZoom);if(saved){const img=new Image();img.onload=()=>{const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,img.width,img.height,0,0,canvas.width,canvas.height);};img.src=saved;}}const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize=Math.round(16*presZoom)+'px';}
+function presZoomOut(){if(presZoom<=0.25)return;presZoom-=0.25;const wrap=document.getElementById('presImgWrap');const zw=document.getElementById('presZoomWrap');const canvas=document.getElementById('presCanvas');if(!zw||!wrap)return;let saved='';if(canvas&&canvas.width>0){try{saved=canvas.toDataURL();}catch(e){}}zw.style.transform='none';zw.style.width=Math.round(wrap.clientWidth*presZoom)+'px';zw.style.height=Math.round(wrap.clientHeight*presZoom)+'px';if(canvas&&wrap){canvas.width=Math.round(wrap.clientWidth*presZoom);canvas.height=Math.round(wrap.clientHeight*presZoom);if(saved){const img=new Image();img.onload=()=>{const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,img.width,img.height,0,0,canvas.width,canvas.height);};img.src=saved;}}const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize=Math.round(16*presZoom)+'px';}
+function presZoomReset(){presZoom=1;const wrap=document.getElementById('presImgWrap');const zw=document.getElementById('presZoomWrap');const canvas=document.getElementById('presCanvas');if(!zw||!wrap)return;zw.style.transform='none';zw.style.width=wrap.clientWidth+'px';zw.style.height=wrap.clientHeight+'px';zw.style.left='0px';zw.style.top='0px';if(canvas){canvas.width=wrap.clientWidth;canvas.height=wrap.clientHeight;}const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize='16px';}
+function presWheelZoom(e){e.preventDefault();const delta=e.deltaY>0?-0.15:0.15;presZoom=Math.max(0.25,Math.min(5,presZoom+delta));const wrap=document.getElementById('presImgWrap');const zw=document.getElementById('presZoomWrap');const canvas=document.getElementById('presCanvas');if(!zw||!wrap)return;let saved='';if(canvas&&canvas.width>0){try{saved=canvas.toDataURL();}catch(e){}}zw.style.transform='none';zw.style.width=Math.round(wrap.clientWidth*presZoom)+'px';zw.style.height=Math.round(wrap.clientHeight*presZoom)+'px';if(canvas){canvas.width=Math.round(wrap.clientWidth*presZoom);canvas.height=Math.round(wrap.clientHeight*presZoom);if(saved){const img=new Image();img.onload=()=>{const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,img.width,img.height,0,0,canvas.width,canvas.height);};img.src=saved;}}const ne=document.getElementById('presImgName');if(ne)ne.style.fontSize=Math.round(16*presZoom)+'px';}
 window._presWheelBound=false;
 function bindPresWheel(){
     if(window._presWheelBound)return;
