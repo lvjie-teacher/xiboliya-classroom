@@ -1595,6 +1595,18 @@ async function presentAll(){
     for(const k in sessionResults)results[k]=sessionResults[k];
     // 最后从服务器补充（仅当本地没有时才用服务器数据，因为服务器URL可能已失效）
     if(serverMode){try{const r=await fetch('/api/results?_t='+Date.now());const d=await r.json();for(const k in d)if(!results[k])results[k]=d[k];}catch(e){}}
+    // ★ 迁移：如果 images 字段包含服务器URL（已失效），尝试从 sessionResults 找 base64 替换
+    for(const k in results){
+        const r=results[k];
+        if(r && Array.isArray(r.images) && r.images.some(img => typeof img === 'string' && (img.startsWith('/uploads/') || img.startsWith('http')))){
+            const sk = r.group_id||k;
+            const sr = sessionResults[sk];
+            if(sr && Array.isArray(sr.images)){
+                r.images = sr.images.filter(img => typeof img === 'string' && img.length>0 && !img.startsWith('/uploads/') && !img.startsWith('http'));
+                if(r.images.length===0) delete r.images;
+            }
+        }
+    }
     // ★ 调试：检查 images 字段
     for(const k in results){
         const r=results[k];
