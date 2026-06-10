@@ -1846,7 +1846,7 @@ function renderPresImage(){
         presDrawing=false;document.getElementById('presDrawBar').classList.remove('active');document.getElementById('presDrawToggle').classList.remove('active-tool');
         // ★ 调试：在页面底部显示图片字段状态
         const dbg=document.getElementById('presDebug');
-        if(dbg){dbg.style.display='block';dbg.textContent='[调试] 当前小组 images 字段：'+(g.images?'有（'+g.images.length+'项）':'无（undefined 或空）';}
+        if(dbg){dbg.style.display='block';dbg.textContent='[调试] 当前小组 images 字段：'+(g.images?'有（'+g.images.length+'项）':'无（undefined 或空）');}
         return;
     }
     if(presImgIdx>=imgs.length)presImgIdx=imgs.length-1;if(presImgIdx<0)presImgIdx=0;
