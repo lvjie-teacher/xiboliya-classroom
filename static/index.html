@@ -379,23 +379,25 @@
         .t2-east { background: #fff9f9; }
         .t2-textarea { width: 100%; min-height: 180px; height: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 12px; font-size: 14px; line-height: 1.6; font-family: inherit; resize: vertical; outline: none; box-sizing: border-box; display: block; }
         .t2-table td { height: 1px; } /* 让textarea的height:100%能生效，填满整个单元格 */
-        /* 手机/pad 适配：让文本框更大 */
+        /* 手机/pad 适配：卡片式堆叠布局 */
         @media (max-width: 768px) {
-            .t2-textarea { min-height: 260px; padding: 14px; font-size: 15px; }
-            .t2-table { font-size: 12px; min-width: 600px; }
-            .t2-table th, .t2-table td { padding: 10px 8px; }
+            .t2-table { min-width: 0; }
+            .t2-table thead { display: none; }
+            .t2-table tr { display: block; margin-bottom: 16px; border: 2px solid #ccc; border-radius: 10px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+            .t2-table td { display: block; width: 100% !important; border: none; border-bottom: 1px solid #eee; padding: 10px 12px; position: relative; padding-left: 40%; min-height: 60px; }
+            .t2-table td:last-child { border-bottom: none; }
+            .t2-table td:before { content: attr(data-label); position: absolute; left: 12px; top: 10px; width: 35%; font-weight: 700; font-size: 12px; color: #555; }
+            .t2-table td[data-label="对比方面"] { background: #f0f0f0; font-weight: 700; font-size: 13px; color: #222; padding-left: 12px; min-height: auto; }
+            .t2-table td[data-label="对比方面"]:before { display: none; }
+            .t2-table td.t2-west { background: #f9fcff; }
+            .t2-table td.t2-east { background: #fff9f9; }
+            .t2-textarea { min-height: 100px; padding: 10px; font-size: 14px; }
             .t2-hint { font-size: 11px; padding: 5px 6px; }
-            .t2-th-aspect { width: 22%; }
-            .t2-th-west { width: 39%; }
-            .t2-th-east { width: 39%; }
         }
         @media (max-width: 480px) {
-            .t2-textarea { min-height: 320px; padding: 16px; font-size: 16px; line-height: 1.8; }
-            .t2-table { font-size: 11px; min-width: 640px; }
-            .t2-table th, .t2-table td { padding: 10px 8px; }
-            .t2-th-aspect { width: 20%; }
-            .t2-th-west { width: 40%; }
-            .t2-th-east { width: 40%; }
+            .t2-table td { padding-left: 38%; font-size: 13px; }
+            .t2-table td:before { font-size: 11px; }
+            .t2-textarea { min-height: 120px; padding: 12px; font-size: 15px; line-height: 1.7; }
         }
         .t2-textarea:focus { border-color: #1a237e; border-width: 2px; }
         .t2-conclusion { background: #f3e5f5; border-radius: 8px; padding: 14px; margin-top: 12px; border-left: 4px solid #7b1fa2; }
@@ -670,9 +672,9 @@ function renderTask2Table() {
             textareaRows = '6';
         }
         return `<tr>
-            <td class="t2-aspect"><strong>${asp}</strong>${hintHtml}</td>
-            <td class="t2-west"><textarea class="t2-textarea" data-ai="${ai}" data-region="west" rows="${textareaRows}" placeholder="欧洲部分…" oninput="autoSaveDraft()"></textarea></td>
-            <td class="t2-east"><textarea class="t2-textarea" data-ai="${ai}" data-region="east" rows="${textareaRows}" placeholder="亚洲部分…" oninput="autoSaveDraft()"></textarea></td>
+            <td class="t2-aspect" data-label="对比方面"><strong>${asp}</strong>${hintHtml}</td>
+            <td class="t2-west" data-label="欧洲部分（西部）"><textarea class="t2-textarea" data-ai="${ai}" data-region="west" rows="${textareaRows}" placeholder="欧洲部分…" oninput="autoSaveDraft()"></textarea></td>
+            <td class="t2-east" data-label="亚洲部分（东部）"><textarea class="t2-textarea" data-ai="${ai}" data-region="east" rows="${textareaRows}" placeholder="亚洲部分…" oninput="autoSaveDraft()"></textarea></td>
         </tr>`;
     }).join('');
     
