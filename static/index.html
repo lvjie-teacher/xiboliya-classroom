@@ -565,10 +565,12 @@ const WORKSHEET_DATA = {
                 errorHint: '认真审图'
             },
             {
-                text: '西部以{blank}为主，地势起伏{blank}；东部以平原、{blank}、{blank}为主，地势起伏{blank}。',
-                blanks: ['平原','小','高原','山地','大'],
+                text: '西部以{blank}为主，地势起伏{select:大|小}；东部以平原、{blank}、{blank}为主，地势起伏{select:大|小}。',
+                blanks: ['平原','高原','山地'],
+                selects: [['大','小'], ['大','小']],
+                answers: ['小','大'],
                 shuffle: true,
-                errorHint: '西部东欧平原，东部高原山地'
+                errorHint: '西部平原起伏小，东部高原山地起伏大'
             },
             {
                 text: '俄罗斯整体地势特征：{blank}高{blank}低。',
