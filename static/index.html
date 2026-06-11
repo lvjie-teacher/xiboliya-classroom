@@ -548,7 +548,7 @@ const GROUPS = {
         task1:{ title:'从课本图册中找到气候相关图片，拍照上传', featureLabel:'气候特征归纳', featurePH:'' },
         task2:{ westTitle:'🌡️ 欧洲部分（西）气候难度', westPH:'提示：从气温、降水、冻土等角度分析…', eastTitle:'🌡️ 亚洲部分（东）气候难度', eastPH:'提示：从气温、降水、冻土等角度分析…', conclusionPH:'综合比较欧洲部分和亚洲部分修建铁路的气候难度差异' }
     },
-    river: { id:'river', name:'河流组', icon:'🌊', gradient:'linear-gradient(135deg,#1565c0,#1976d2)', color:'#1565c0', keyword:'河流 鄂毕河 叶尼塞河 勒拿河',
+    river: { id:'river', name:'河湖组', icon:'🌊', gradient:'linear-gradient(135deg,#1565c0,#1976d2)', color:'#1565c0', keyword:'河湖 鄂毕河 叶尼塞河 勒拿河',
         task1:{ title:'从课本图册中找到河湖相关图片，拍照上传', featureLabel:'河湖特征归纳', featurePH:'' },
         task2:{ westTitle:'🌊 欧洲部分（西）河湖难度', westPH:'提示：从河流数量、结冰期等角度分析…', eastTitle:'🌊 亚洲部分（东）河湖难度', eastPH:'提示：从河流数量、结冰期等角度分析…', conclusionPH:'综合比较欧洲部分和亚洲部分修建铁路的河湖难度差异' }
     },
@@ -560,12 +560,15 @@ const WORKSHEET_DATA = {
         label: '地形组', icon: '地', cls: 'terr',
         questions: [
             {
-                text: '西部以平原为主，地势起伏{select:大|小}；东部以{blank}、{blank}、{blank}为主，地势起伏{select:大|小}。',
-                blanks: ['平原','山地','高原'],
-                selects: [['大','小'], ['大','小']],
-                answers: ['小','大'],
+                text: '俄罗斯地形类型{select:多样|单一}。',
+                selects: [['多样','单一']], answers: ['多样'],
+                errorHint: '认真审图'
+            },
+            {
+                text: '西部以{blank}为主，地势起伏{blank}；东部以平原、{blank}、{blank}为主，地势起伏{blank}。',
+                blanks: ['平原','小','高原','山地','大'],
                 shuffle: true,
-                errorHint: '西部平原起伏小，东部高原山地起伏大'
+                errorHint: '西部东欧平原，东部高原山地'
             },
             {
                 text: '俄罗斯整体地势特征：{blank}高{blank}低。',
@@ -582,14 +585,8 @@ const WORKSHEET_DATA = {
                 blanks: ['4'], selectIdx: 1, answers: ['多样']
             },
             {
-                text: '以{blank}气候为主。',
-                blanks: ['温带大陆性']
-            },
-            {
-                text: '冬季{blank}漫长。',
-                blanks: ['寒冷'],
-                acceptAlt: true,
-                alts: [['寒冷','严寒','冷','寒','很冷','极寒','酷寒','气温低','低温']]
+                text: '以{blank}气候为主，冬季{blank}漫长。',
+                blanks: ['温带大陆性','寒冷']
             },
             {
                 text: '寒带气候主要分布在俄罗斯{select:北|南|东|西}部地区；温带季风气候分布在{select:东|西|南|北}部{select:太平洋|大西洋|北冰洋}沿岸地区。',
@@ -603,7 +600,7 @@ const WORKSHEET_DATA = {
         ]
     },
     river: {
-        label: '河流组', icon: '水', cls: 'river',
+        label: '河湖组', icon: '水', cls: 'river',
         questions: [
             {
                 text: '俄罗斯河流数量{select:多|少}。',
