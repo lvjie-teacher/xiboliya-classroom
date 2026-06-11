@@ -1336,20 +1336,33 @@ async function confirmImageLibrary(){
         const img=libraryImages[idx];
         if(!img)continue;
         try{
-            // 尝试 fetch 图片并转 base64（确保跨设备也能看）
-            const resp=await fetch(img.url);
+            // ★ 优先尝试本地Flask URL（国内网络更快更稳定）
+            const localUrl = img.localUrl || ('/image_lib/' + encodeURIComponent(img.name + '.jpg'));
+            const resp=await fetch(localUrl);
+            if(!resp.ok) throw new Error('Local fetch failed');
             const blob=await resp.blob();
             const b64=await new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(blob);});
             uploadedImages.push(b64);
-            imageUrls.push(img.url);
+            imageUrls.push(localUrl);
             uploadedNames.push(img.name);
             added++;
         }catch(e){
-            // 降级：直接用服务器URL
-            uploadedImages.push(img.url);
-            imageUrls.push(img.url);
-            uploadedNames.push(img.name);
-            added++;
+            // 降级：尝试 GitHub URL
+            try{
+                const resp=await fetch(img.url);
+                const blob=await resp.blob();
+                const b64=await new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(blob);});
+                uploadedImages.push(b64);
+                imageUrls.push(img.url);
+                uploadedNames.push(img.name);
+                added++;
+            }catch(e2){
+                // 最终降级：直接用本地URL（图上会显示，但跨设备可能404）
+                uploadedImages.push(img.localUrl || ('/image_lib/' + encodeURIComponent(img.name + '.jpg')));
+                imageUrls.push(img.url);
+                uploadedNames.push(img.name);
+                added++;
+            }
         }
     }
     updateUploadArea();
@@ -2018,15 +2031,31 @@ function presShowLibImage(imgUrl){
     presViewingLibImg=true;
     document.getElementById('presOverlay').classList.add('libview');
     closeImageLibrary();
-    document.getElementById('presRight').style.display='none';
+    // ★ 不再隐藏右侧面板和导航按钮，保留任务展示
+    // 将图库图片作为 presImage 的唯一图片加载，支持缩放/平移
+    const wrap=document.getElementById('presImgWrap');
+    if(wrap)wrap.innerHTML='<img id="presImage" src="" alt=""><canvas id="presCanvas"></canvas>';
     const imgEl=document.getElementById('presImage');
-    imgEl.src=imgUrl;
-    imgEl.style.display='block';
-    presZoom=1; imgEl.style.transform='scale(1)';
-    document.getElementById('presImgNav').style.display='none';
+    imgEl.onload=function(){const e=document.getElementById('presImgError');if(e)e.style.display='none';};
+    imgEl.onerror=function(){imgEl.style.display='none';const w=imgEl.parentNode;let e=document.getElementById('presImgError');if(!e){e=document.createElement('div');e.id='presImgError';e.style.cssText='color:#ff6b6b;font-size:14px;text-align:center;padding:20px;';w.appendChild(e);}e.textContent='⚠️ 图片加载失败';e.style.display='block';};
+    imgEl.src=imgUrl;imgEl.style.display='block';
+    // 重建 presZoomWrap，让缩放/平移正常工作
+    const canvas=document.getElementById('presCanvas');
+    presZoom=1;
+    const zw=document.createElement('div');
+    zw.id='presZoomWrap';
+    zw.style.cssText='display:flex;flex-direction:column;align-items:center;transform-origin:center center;position:absolute;left:0;top:0;width:100%;height:100%;';
+    const parent=imgEl.parentNode;
+    const nEl=document.createElement('div');nEl.id='presImgName';nEl.style.cssText='color:white;font-size:16px;font-weight:600;text-align:center;padding:4px 0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    parent.insertBefore(zw,imgEl);
+    zw.appendChild(imgEl);
+    zw.appendChild(nEl);
+    if(canvas)zw.appendChild(canvas);
+    // 重置缩放
+    if(canvas){canvas.width=Math.round(wrap.clientWidth*presZoom);canvas.height=Math.round(wrap.clientHeight*presZoom);const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);}
+    // 启用画笔
     presDrawing=true;
     initPresCanvas();
-    const canvas=document.getElementById('presCanvas');
     if(canvas)canvas.classList.add('drawing');
     document.getElementById('presDrawBar').classList.add('active');
     document.getElementById('presDrawToggle').classList.add('active-tool');
@@ -2036,8 +2065,9 @@ function presShowLibImage(imgUrl){
 function presCloseLibImageView(){
     presViewingLibImg=false;
     document.getElementById('presOverlay').classList.remove('libview');
-    document.getElementById('presRight').style.display='';
-    document.getElementById('presImgNav').style.display='flex';
+    // ★ 恢复展示布局：重建 presImgWrap（renderPresImage 会重新创建 zoomWrap）
+    const wrap=document.getElementById('presImgWrap');
+    if(wrap)wrap.innerHTML='<img id="presImage" src="" alt=""><canvas id="presCanvas"></canvas>';
     presDrawing=false;
     const canvas=document.getElementById('presCanvas');
     if(canvas){
@@ -2092,11 +2122,12 @@ const BUILTIN_IMAGE_LIB = [
   "俄罗斯气候类型分布.jpg",
   "莫斯科和雅库茨克气温曲线和降水量柱状图.jpg"
 ];
-// ★ 直接用内置列表填充缓存（零服务器依赖，图片从GitHub CDN加载）
+// ★ 直接用内置列表填充缓存（零服务器依赖，图片从本地Flask和GitHub CDN加载）
 cachedLibraryImages = BUILTIN_IMAGE_LIB.map(function(name){
     return {
         name: name.replace('.jpg',''),
-        url: 'https://raw.githubusercontent.com/lvjie-teacher/xibolite-classroom/main/static/image_lib/' + encodeURIComponent(name)
+        url: 'https://raw.githubusercontent.com/lvjie-teacher/xibolite-classroom/main/static/image_lib/' + encodeURIComponent(name),
+        localUrl: '/image_lib/' + encodeURIComponent(name)  // ★ 本地URL供降级使用
     };
 });
 // 同时直接给 libraryImages 赋值，确保打开图片库时立即可用
