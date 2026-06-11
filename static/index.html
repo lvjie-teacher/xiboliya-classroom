@@ -560,22 +560,20 @@ const WORKSHEET_DATA = {
         label: '地形组', icon: '地', cls: 'terr',
         questions: [
             {
-                text: '俄罗斯的地形类型{select:多样|单一}，以{blank}、{blank}、{blank}地形为主。',
-                blanks: ['平原','高原','山地'],
-                selectIdx: 0, answers: ['多样'],
-                shuffle: true,
+                text: '俄罗斯地形类型{select:多样|单一}。',
+                selects: [['多样','单一']], answers: ['多样'],
                 errorHint: '认真审图'
             },
             {
-                text: '读图判断，自西向东地形区依次为：东欧平原 → {blank} → 中西伯利亚高原 → {blank}。',
-                blanks: ['西西伯利亚平原','东西伯利亚山地'],
-                orderHint: '要认真审题，注意方向上的词'
+                text: '西部以{blank}为主，地势起伏{blank}；东部以平原、{blank}、{blank}为主，地势起伏{blank}。',
+                blanks: ['平原','小','高原','山地','大'],
+                shuffle: true,
+                errorHint: '西部东欧平原，东部高原山地'
             },
             {
-                text: '俄罗斯的总体地势特征是{select:东高西低|西高东低|南高北低}，地势起伏程度总体{select:较大|较小}。',
-                selects: [['东高西低','西高东低','南高北低'],['较大','较小']],
-                answers: ['东高西低','较大'],
-                errorHint: '要学会认真分析，分析能力还不够'
+                text: '俄罗斯整体地势特征：{blank}高{blank}低。',
+                blanks: ['东','西'],
+                errorHint: '东高西低'
             }
         ]
     },
@@ -583,12 +581,12 @@ const WORKSHEET_DATA = {
         label: '气候组', icon: '气', cls: 'clima',
         questions: [
             {
-                text: '俄罗斯共有{blank}种气候类型，气候种类呈现{select:多样|单一}的特点。',
+                text: '俄罗斯共有{blank}种气候类型，气候种类{select:多样|单一}。',
                 blanks: ['4'], selectIdx: 1, answers: ['多样']
             },
             {
-                text: '大部分地区属于{blank}气候区。',
-                blanks: ['温带大陆性']
+                text: '以{blank}气候为主，冬季{blank}漫长。',
+                blanks: ['温带大陆性','寒冷']
             },
             {
                 text: '寒带气候主要分布在俄罗斯{select:北|南|东|西}部地区；温带季风气候分布在{select:东|西|南|北}部{select:太平洋|大西洋|北冰洋}沿岸地区。',
@@ -596,40 +594,30 @@ const WORKSHEET_DATA = {
                 answers: ['北','东','太平洋']
             },
             {
-                text: '冬季{blank}且{blank}，夏季{blank}而{blank}。',
-                blanks: ['寒冷/严寒','漫长','温暖','短促'],
-                acceptAlt: true,
-                alts: [
-                    ['寒冷','严寒','冷','寒','很冷','极寒','酷寒'],
-                    ['漫长','长','很长','久','长久'],
-                    ['温暖','凉爽','凉快','暖和','温和','暖','凉'],
-                    ['短促','短','短暂','很短','比较短']
-                ]
+                text: '气温西部比东部{select:低|高}；降水量西部比东部{select:大|小}。',
+                selects: [['低','高'],['大','小']], answers: ['高','大']
             }
         ]
     },
     river: {
-        label: '河流组', icon: '水', cls: 'river',
+        label: '河湖组', icon: '水', cls: 'river',
         questions: [
             {
-                text: '俄罗斯的河流湖泊数量{select:众多|稀少}。',
-                selects: [['众多','稀少']], answers: ['众多']
+                text: '俄罗斯河流数量{select:多|少}。',
+                selects: [['多','少']], answers: ['多']
             },
             {
-                text: '西伯利亚三大河流自西向东：{blank}河 → 叶尼塞河 → {blank}河。',
-                blanks: ['鄂毕','勒拿']
+                text: '俄罗斯西伯利亚地区的三大河流，自西向东分别是：{blank}河、叶尼塞河、{blank}河，流向自{select:南|西}向{select:北|东}流。',
+                blanks: ['鄂毕','勒拿'],
+                selects: [['南','西'],['北','东']], answers: ['南','北']
             },
             {
-                text: '欧洲部分最长的河流是{blank}河（"母亲河"）。',
+                text: '俄罗斯欧洲部分最长的河流是{blank}河，被称为俄罗斯的"母亲河"。',
                 blanks: ['伏尔加']
             },
             {
-                text: '受纬度较高影响，大部分河流结冰期{select:很长|很短|无}。',
+                text: '大部分河流结冰期{select:很长|很短|无}。',
                 selects: [['很长','很短','无']], answers: ['很长']
-            },
-            {
-                text: '俄罗斯拥有世界上最深的湖泊{blank}湖，它的最大深度是1637米。',
-                blanks: ['贝加尔']
             }
         ]
     }
@@ -639,26 +627,23 @@ const WORKSHEET_DATA = {
 const TASK2_TABLE_DATA = {
     terrain: {
         label: '地形组', icon: '🏔️', cls: 'terr',
-        aspects: ['主要地形', '起伏程度', '导致的主要难题']
+        aspects: ['修建难题']
     },
     climate: {
         label: '气候组', icon: '🌡️', cls: 'clima',
-        aspects: ['冬季寒冷程度', '冬季漫长程度', '导致的主要难题']
+        aspects: ['修建难题']
     },
     river: {
         label: '河流组', icon: '🌊', cls: 'river',
-        aspects: ['跨越大河的数量', '河面宽度', '湖泊的影响', '导致的主要难题']
+        aspects: ['修建难题']
     }
 };
 
 // 任务二提示语（全局，renderTask2Table 和 renderPresTask2Grid 共用）
 const TASK2_HINTS = {
-    terrain: {'导致的主要难题':'提示：可从地势起伏大小、是否需要开挖隧道或填充峡谷等工程角度思考，请分条目写（如：①…②…③…）'},
-    climate: {'导致的主要难题':'提示：可从永冻土分布、低温对施工的影响、每年有效施工时间等角度思考，请分条目写（如：①…②…③…）'},
-    river:   {
-        '湖泊的影响': '',
-        '导致的主要难题': '提示：可从需要跨越的河流数量、每座桥梁的长度/高度等技术难度角度思考，请分条目写（如：①…②…③…）'
-    }
+    terrain: {'修建难题':'提示：可从地势起伏大小、是否需要开挖隧道或填充峡谷等工程角度思考…'},
+    climate: {'修建难题':'提示：可从冻土分布、低温对施工的影响、每年有效施工时间等角度思考…'},
+    river:   {'修建难题':'提示：可从需要跨越的河流数量、结冰期、流速等技术难度角度思考…'}
 };
 
 // ============ 任务二：渲染对比表格 ============
@@ -672,16 +657,16 @@ function renderTask2Table() {
         const hasHint = !!(TASK2_HINTS[gkey] && TASK2_HINTS[gkey][asp]);
         let textareaRows = '4';
 
-        // 判断是否是"导致的主要难题"那一行
-        const isMainRow = asp.indexOf('主要难题') !== -1;
+        // 判断是否是主要分析行（修建难题/主要难题）
+        const isMainRow = asp.indexOf('主要难题') !== -1 || asp.indexOf('修建难题') !== -1;
 
         if (isMainRow) {
             // ★ 导致的主要难题：这一行高度大一倍
             textareaRows = '8';
             rowsHtml += `<tr class="t2-row-large">
                 <td class="t2-aspect" data-label="对比方面"><strong>${asp}</strong></td>
-                <td class="t2-west" data-label="欧洲部分（西部）"><textarea class="t2-textarea" data-ai="${ai}" data-region="west" rows="${textareaRows}" placeholder="欧洲部分（写清楚主要难题）…" oninput="autoSaveDraft()"></textarea></td>
-                <td class="t2-east" data-label="亚洲部分（东部）"><textarea class="t2-textarea" data-ai="${ai}" data-region="east" rows="${textareaRows}" placeholder="亚洲部分（写清楚主要难题）…" oninput="autoSaveDraft()"></textarea></td>
+                <td class="t2-west" data-label="欧洲部分（西部）"><textarea class="t2-textarea" data-ai="${ai}" data-region="west" rows="${textareaRows}" placeholder="欧洲部分（分析修建难题）…" oninput="autoSaveDraft()"></textarea></td>
+                <td class="t2-east" data-label="亚洲部分（东部）"><textarea class="t2-textarea" data-ai="${ai}" data-region="east" rows="${textareaRows}" placeholder="亚洲部分（分析修建难题）…" oninput="autoSaveDraft()"></textarea></td>
             </tr>`;
             // ★ 提示语单独放第四行（跨三列）
             if (hasHint) {
@@ -1182,9 +1167,6 @@ function renderMainApp(){
     document.getElementById('headerSubtitle').textContent=`${g.icon} ${g.name} · 第${currentGroupNum}小组`;
     document.getElementById('groupCardContainer').innerHTML=`
     <div class="group-card"><div class="group-header" style="background:${g.gradient}"><span class="group-icon">${g.icon}</span><span class="group-name">${g.name} · 第${currentGroupNum}小组</span></div><div class="group-body">
-        <div class="task-section"><div class="task-title"><span class="emoji">📋</span>任务一：完成填空探究学案</div>
-            ${renderWorksheet()}
-        </div>
         <div class="task-section"><div class="task-title"><span class="emoji">📷</span>探究过程中我用到的图片有哪些？</div>
             <div class="upload-area" id="uploadArea" onclick="triggerUpload()"><div class="upload-icon">📤</div><div class="upload-text">点击此处上传图片</div></div>
             <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
@@ -1194,8 +1176,11 @@ function renderMainApp(){
                 <button class="upload-btn lib" onclick="openImageLibrary()"><span class="btn-icon">📚</span>图片库</button>
             </div>
         </div>
+        <div class="task-section"><div class="task-title"><span class="emoji">📋</span>任务一：完成填空探究学案</div>
+            ${renderWorksheet()}
+        </div>
         <div class="task-section"><div class="task-title"><span class="emoji">🚂</span>任务二：从${g.name.replace('组','')}角度比较在亚洲部分和欧洲部分修建西伯利亚大铁路的难度</div>
-            <div class="tip-box"><div class="tip-label">💡 结合下方对比表格，分别从俄罗斯<strong>欧洲部分（西部）</strong>和<strong>亚洲部分（东部）</strong>两个区域进行分析，并写2-3条综合结论</div></div>
+            <div class="tip-box"><div class="tip-label">💡 结合下方对比表格，分别从俄罗斯<strong>欧洲部分（西部）</strong>和<strong>亚洲部分（东部）</strong>两个区域进行分析</div></div>
             ${renderTask2Table()}
         </div>
     </div></div>`;
